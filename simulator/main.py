@@ -9,17 +9,18 @@ from config import DEFAULT_MACHINE_CONFIG
 from machine import VirtualMachine
 
 
-def run_simulator(cycles: int | None = None) -> None:
+def run_simulator(scenario: str = "healthy", cycles: int | None = None) -> None:
     """Run the telemetry generator loop.
 
+    :param scenario: Simulation scenario ('healthy' or 'degraded').
     :param cycles: Optional count of iterations to run. If None, runs indefinitely.
     """
-    machine = VirtualMachine(DEFAULT_MACHINE_CONFIG)
+    machine = VirtualMachine(DEFAULT_MACHINE_CONFIG, scenario=scenario)
     interval = DEFAULT_MACHINE_CONFIG.poll_interval_seconds
 
     print(
-        f"[PlantNexus Simulator] Initialized machine '{machine.machine_id}'. "
-        f"Emitting healthy telemetry every {interval}s...",
+        f"[PlantNexus Simulator] Initialized machine '{machine.machine_id}' in [{scenario.upper()}] scenario. "
+        f"Emitting telemetry every {interval}s...",
         flush=True,
     )
 
@@ -40,7 +41,14 @@ def run_simulator(cycles: int | None = None) -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="PlantNexus M1.1 Virtual Machine Simulator"
+        description="PlantNexus M1.2 Virtual Machine Simulator"
+    )
+    parser.add_argument(
+        "--scenario",
+        type=str,
+        choices=["healthy", "degraded"],
+        default="healthy",
+        help="Simulation scenario: healthy (default) or degraded",
     )
     parser.add_argument(
         "--cycles",
@@ -53,4 +61,5 @@ def parse_args() -> argparse.Namespace:
 
 if __name__ == "__main__":
     args = parse_args()
-    run_simulator(cycles=args.cycles)
+    run_simulator(scenario=args.scenario, cycles=args.cycles)
+

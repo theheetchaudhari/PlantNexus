@@ -18,3 +18,11 @@ class MachineBaselineConfig:
 
 
 DEFAULT_MACHINE_CONFIG = MachineBaselineConfig()
+
+# Degradation scenario multipliers (M1.2)
+DEGRADATION_FACTORS = {
+    "energy_multiplier": 1.42,       # +42% energy consumption
+    "production_multiplier": 0.93,   # -7% production rate
+    "waste_multiplier": 1.28,        # +28% waste
+    "temperature_multiplier": 1.12,  # +12% temperature
+}
