@@ -1,6 +1,6 @@
-# PlantNexus Simulator (M1.3 Recovery Simulation)
+# PlantNexus Simulator (M1.4 Backend Integration)
 
-Lightweight factory simulator generating telemetry for machine `M-017` with healthy, degraded, and recovery operating scenarios.
+Lightweight factory simulator generating telemetry for machine `M-017` with healthy, degraded, and recovery operating scenarios, and streaming records to the local backend ingestion endpoint.
 
 ## Prerequisites
 - Python 3.10+ (Standard library only; zero external dependencies).
@@ -20,6 +20,8 @@ The virtual environment is created at `.venv/`. To activate:
 ## Running the Simulator
 
 > **Note:** Execute commands from inside the `simulator` directory (`cd simulator`).
+
+By default, every emitted telemetry payload is displayed in the terminal and automatically transmitted via HTTP POST to `http://localhost:3001/api/telemetry`.
 
 ### 1. Healthy Scenario (Default)
 Generates baseline telemetry under normal healthy conditions:
@@ -44,7 +46,16 @@ python main.py --scenario recovery
 ### Controlled Cycles (Testing)
 Limit the number of emitted records using `--cycles <N>`:
 ```bash
-python main.py --scenario healthy --cycles 5
+python main.py --scenario healthy --cycles 3
 python main.py --scenario degraded --cycles 5
 python main.py --scenario recovery --cycles 10
 ```
+
+### Custom Backend URL
+To send telemetry to an alternate ingestion URL:
+```bash
+python main.py --backend-url http://localhost:3001/api/telemetry
+```
+
+### Graceful Offline Handling
+If the backend server is stopped or unreachable, the simulator prints a warning and continues running without crashing.

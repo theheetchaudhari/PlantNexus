@@ -30,3 +30,6 @@ DEGRADATION_FACTORS = {
 # Recovery simulation settings (M1.3)
 DEFAULT_RECOVERY_STEPS = 10
 
+# Backend telemetry endpoint (M1.4)
+DEFAULT_BACKEND_URL = "http://localhost:3001/api/telemetry"
+
