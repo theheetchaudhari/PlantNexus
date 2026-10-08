@@ -26,3 +26,7 @@ DEGRADATION_FACTORS = {
     "waste_multiplier": 1.28,        # +28% waste
     "temperature_multiplier": 1.12,  # +12% temperature
 }
+
+# Recovery simulation settings (M1.3)
+DEFAULT_RECOVERY_STEPS = 10
+

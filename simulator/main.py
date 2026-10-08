@@ -41,14 +41,14 @@ def run_simulator(scenario: str = "healthy", cycles: int | None = None) -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="PlantNexus M1.2 Virtual Machine Simulator"
+        description="PlantNexus M1.3 Virtual Machine Simulator"
     )
     parser.add_argument(
         "--scenario",
         type=str,
-        choices=["healthy", "degraded"],
+        choices=["healthy", "degraded", "recovery"],
         default="healthy",
-        help="Simulation scenario: healthy (default) or degraded",
+        help="Simulation scenario: healthy (default), degraded, or recovery",
     )
     parser.add_argument(
         "--cycles",
@@ -57,6 +57,7 @@ def parse_args() -> argparse.Namespace:
         help="Number of telemetry cycles to emit before exiting (default: infinite)",
     )
     return parser.parse_args()
+
 
 
 if __name__ == "__main__":
