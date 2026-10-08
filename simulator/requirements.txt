@@ -1,0 +1,2 @@
+# PlantNexus Simulator - Dependencies
+# M1.1 uses only the Python standard library (no external packages required).
