@@ -145,17 +145,20 @@ None for verification API. Persistence is degraded (`verificationId: null`) unti
 
 ## Milestone 5 — React dashboard integration
 
-**Status: NOT STARTED.**
+**Status: IN PROGRESS (Task 4 Complete).**
 
 ### Completed
 
-Vite + React 19 + TS scaffold (`frontend/`).
+- Vite + React 19 + TS scaffold (`frontend/`).
+- Task 1: Design System Foundation (CSS tokens, typography, app placeholder).
+- Task 2: Application Shell (TopBar, Tabs, Footer), Vite proxy, and `useApiHealth` polling.
+- Task 3: API Client and Telemetry Hooks (`fetchTelemetry`, `fetchAnalytics`, TypeScript types, `useTelemetry`, `useAnalytics`). Build successfully verified.
+- Task 4: Real-Data Overview Dashboard (`OverviewDashboard`, `MetricCard`, `ConditionBadge`). Real analytics metrics displayed including Energy, Production, Waste, Temperature, and Efficiency with proper data state handling (loading, empty, stale, normal).
 
 ### Pending
 
-- Client for health, telemetry, analytics, analyze (and later recovery).
-- Charts / condition display; proxy or CORS already open on API.
-- `vite.config.ts` has **no** API proxy.
+- Client for analyze (and later recovery).
+- Charts / analysis and evidence panels display.
 
 ### Dependencies
 
