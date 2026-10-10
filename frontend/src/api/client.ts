@@ -1,4 +1,4 @@
-import type { TelemetryRecord, AnalyticsResponse, AnalysisResult } from './types';
+import type { TelemetryRecord, AnalyticsResponse, AnalysisResult, RecoveryVerificationResult } from './types';
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
@@ -81,6 +81,34 @@ export async function runAnalysis(
   const result = await response.json();
   if (!result.success) {
     throw new Error(result.error || 'Failed to run analysis');
+  }
+
+  return result.data;
+}
+
+export async function verifyRecovery(
+  machineId: string,
+  limit: number = 50,
+  minConsecutive: number = 3,
+  signal?: AbortSignal
+): Promise<RecoveryVerificationResult> {
+  const response = await fetch(`${API_BASE}/verify-recovery`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ machineId, limit, minConsecutive }),
+    signal,
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`HTTP error! status: ${response.status} - ${errText}`);
+  }
+
+  const result = await response.json();
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to verify recovery');
   }
 
   return result.data;

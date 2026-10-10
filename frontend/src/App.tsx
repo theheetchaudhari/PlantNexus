@@ -6,6 +6,7 @@ import { Footer } from './components/Footer';
 import { OverviewDashboard } from './components/OverviewDashboard';
 import { TelemetryTrends } from './components/TelemetryTrends';
 import { AnalysisDashboard } from './components/AnalysisDashboard';
+import { RecoveryDashboard } from './components/RecoveryDashboard';
 import './App.css';
 
 function App() {
@@ -32,6 +33,8 @@ function App() {
             <TelemetryTrends machineId="M-017" />
           ) : activeTab === 'analysis' ? (
             <AnalysisDashboard machineId="M-017" />
+          ) : activeTab === 'recovery' ? (
+            <RecoveryDashboard machineId="M-017" />
           ) : (
             <div className="tab-panel-placeholder" role="tabpanel" id={`panel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
               <h2>{getTabLabel(activeTab)} Content</h2>

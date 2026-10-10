@@ -145,7 +145,7 @@ None for verification API. Persistence is degraded (`verificationId: null`) unti
 
 ## Milestone 5 — React dashboard integration
 
-**Status: IN PROGRESS (Task 6 Complete).**
+**Status: COMPLETE (Tasks 1–7 Complete).**
 
 ### Completed
 
@@ -156,18 +156,19 @@ None for verification API. Persistence is degraded (`verificationId: null`) unti
 - Task 4: Real-Data Overview Dashboard (`OverviewDashboard`, `MetricCard`, `ConditionBadge`). Real analytics metrics displayed including Energy, Production, Waste, Temperature, and Efficiency with proper data state handling (loading, empty, stale, normal).
 - Task 5: Telemetry Trends & Charts (`TelemetryTrends`, `TelemetryChartCard`). Implemented responsive Recharts time-series charts for Energy (kW), Production Rate (units/hr), Waste (kg), and Temperature (°C). Features chronological sorting, record-window limit selector (25, 50, 100, 200 readings), metric filtering, mini stats strip (Min, Avg, Max, Latest), honest loading/error/empty/stale states, and data freshness tracking for `M-017`. Verified with `npm run build` (passed: 0 errors).
 - Task 6: Analysis & Evidence tab (`AnalysisDashboard`, `useAnalysis`, `runAnalysis` in API client). Implemented deterministic anomaly detection dashboard consuming `POST /api/analyze` for `M-017`. Features condition/severity banner (`HEALTHY`, `DEGRADED`, `CRITICAL`), confidence score, baseline depth selector, relative metric deviations evidence grid (observed, baseline, adverse %, soft/hard thresholds, recommendations), grounded AI narrative inspection panel with source tags (`llm` vs `fallback`), verification suggestions, and action checklist. Tested end-to-end against live backend (`Proxy test success: true, Condition: DEGRADED`). Verified with `npm run build` (passed: 0 errors).
+- Task 7: Recovery Verification tab (`RecoveryDashboard`, `useRecoveryVerification`, `verifyRecovery` in API client). Implemented before-and-after recovery verification dashboard consuming `POST /api/verify-recovery` for `M-017`. Features status/verdict banners (`VERIFIED`, `RECOVERING`, `NOT_RECOVERED`, `INSUFFICIENT_DATA`), consecutive healthy readings streak counter and visual progress bar (`consecutiveHealthy` / `requiredConsecutiveHealthy`), improvement score (`0.0` to `1.0`), before-and-after baseline vs current metric comparisons with tolerance thresholds and deviation percentages, and quality warning notices. Tested live through Vite proxy (`Proxy test success: true, Status: VERIFIED, Verdict: IMPROVED, Consecutive: 6/3, Score: 1`). Verified with `npm run build` (passed: 0 errors).
 
 ### Pending
 
-- Task 7: Recovery Verification tab (`POST /api/verify-recovery`) showing sustained consecutive healthy readings and before/after verification verdicts.
+None for Milestone 5. All four dashboard tabs (Overview, Telemetry Trends, Analysis & Evidence, Recovery Verification) are fully implemented and integrated.
 
 ### Dependencies
 
-Stable backend routes (M1–M4 exist).
+Stable backend routes (M1–M4).
 
 ### Blockers
 
-None to continue UI implementation.
+None.
 
 ---
 
@@ -217,11 +218,11 @@ M3–M5 incomplete. M2 persist incomplete on host.
 
 ## Current milestone and next task
 
-**Current:** Milestones 1–4 complete in working tree. Milestone 5 (React Dashboard) is in progress: Tasks 1–6 complete with Overview, Telemetry Trends, and Analysis & Evidence tabs fully implemented and verified against real backend endpoints.
+**Current:** Milestones 1–5 are COMPLETE in the working tree. All four frontend tabs (Overview, Telemetry Trends, Analysis & Evidence, Recovery Verification) are fully implemented and verified against real backend API endpoints.
 
 **Exact next task options (pick one):**
 
-1. **Milestone 5 — Task 7 (Recovery Verification tab):** Implement frontend integration for `POST /api/verify-recovery` showing sustained consecutive healthy reading requirements, before-vs-after baseline comparisons, improvement scores, and recovery certification verdicts (`IMPROVED`, `PARTIALLY_IMPROVED`, `NO_IMPROVEMENT`).
+1. **Milestone 7 (End-to-End Testing & Demo Script):** Prepare and test scripted end-to-end demo flow (`healthy` → `degraded` → `analyze` → `recovery` → `verify-recovery` → dashboard presentation).
 2. **Ops (approval required):** Apply `20261009194500_create_intelligence_tables.sql` to hosted Supabase, confirming `analysisId` and `verificationId` are non-null on future calls.
 
 Do not commit, deploy, or modify hosted Supabase without explicit user approval.

@@ -159,3 +159,55 @@ export interface AnalysisResult {
   explanation?: AnalysisExplanation;
 }
 
+export type VerificationStatus =
+  | 'VERIFIED'
+  | 'RECOVERING'
+  | 'NOT_RECOVERED'
+  | 'INSUFFICIENT_DATA';
+
+export type VerificationVerdict =
+  | 'IMPROVED'
+  | 'PARTIALLY_IMPROVED'
+  | 'NO_IMPROVEMENT'
+  | 'DEGRADED';
+
+export type MetricComparisonStatus =
+  | 'healthy'
+  | 'degraded'
+  | 'critical'
+  | 'unknown';
+
+export interface MetricComparisonItem {
+  field: string;
+  current: number | null;
+  baseline: number;
+  unit: string;
+  deviationPct: number | null;
+  adversePct: number | null;
+  thresholdPct: number;
+  status: MetricComparisonStatus;
+}
+
+export interface RecoveryQuality {
+  status: 'ok' | 'insufficient_data';
+  warnings: string[];
+}
+
+export interface RecoveryVerificationResult {
+  verificationId: string | number | null;
+  machineId: string;
+  verificationStatus: VerificationStatus;
+  verdict: VerificationVerdict;
+  timestamp: string;
+  readingsEvaluated: number;
+  consecutiveHealthy: number;
+  requiredConsecutiveHealthy: number;
+  improvementScore: number;
+  currentCondition: AnomalyCondition | 'INVALID' | null;
+  metricsComparison: Record<string, MetricComparisonItem>;
+  reason: string;
+  summary: string;
+  quality: RecoveryQuality;
+}
+
+
