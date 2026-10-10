@@ -1,6 +1,25 @@
+# Dependencies
 node_modules/
+
+# Build output
 dist/
+coverage/
+
+# Environment secrets
 .env
+.env.*
+!.env.example
+/backend/.env
+
+# Python virtual environments
 .venv/
 __pycache__/
 *.pyc
+
+# Local AI editor and agent configuration
+.cursor/
+.agents/
+
+# Operating system files
+.DS_Store
+Thumbs.db
