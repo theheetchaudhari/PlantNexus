@@ -5,42 +5,48 @@
 /* --- Google Fonts loaded via index.html --- */
 
 :root {
+  /* ---- Locked Core Palette ---- */
+  --color-deep-forest:     #142D2B;
+  --color-resource-green:  #23866A;
+  --color-soft-neutral:    #F7F8F4;
+  --color-signal-amber:    #E9A23B;
+
   /* ---- Neutrals ---- */
-  --color-bg-primary:      #F8F9FB;
+  --color-bg-primary:      var(--color-soft-neutral);
   --color-bg-secondary:    #FFFFFF;
-  --color-bg-tertiary:     #F0F2F5;
+  --color-bg-tertiary:     #EDF1EC;
   --color-bg-elevated:     #FFFFFF;
-  --color-border:          #E2E5EA;
-  --color-border-subtle:   #ECEEF2;
-  --color-text-primary:    #1A1D23;
-  --color-text-secondary:  #5F6672;
-  --color-text-tertiary:   #8B919D;
+  --color-border:          #D9DFD7;
+  --color-border-subtle:   #E8EDE6;
+  --color-text-primary:    #142D2B;
+  --color-text-secondary:  #4E5E5B;
+  --color-text-tertiary:   #7A8B88;
   --color-text-inverse:    #FFFFFF;
 
-  /* ---- Industrial Blue — primary brand ---- */
-  --color-primary:         #1B3A5C;
-  --color-primary-light:   #2A5580;
-  --color-primary-lighter: #E8EFF6;
+  /* ---- Primary Brand (Deep Forest) ---- */
+  --color-primary:         #142D2B;
+  --color-primary-light:   #1E4340;
+  --color-primary-lighter: #E6EFEA;
 
-  /* ---- Status: Healthy ---- */
-  --color-healthy:         #16A34A;
-  --color-healthy-bg:      #F0FDF4;
-  --color-healthy-border:  #BBF7D0;
+  /* ---- Status: Healthy (Resource Green) ---- */
+  --color-healthy:         #23866A;
+  --color-healthy-bg:      #EBF7F2;
+  --color-healthy-border:  #A7DCB9;
 
-  /* ---- Status: Degraded ---- */
-  --color-degraded:        #D97706;
-  --color-degraded-bg:     #FFFBEB;
-  --color-degraded-border: #FDE68A;
+  /* ---- Status: Degraded (Signal Amber) ---- */
+  --color-degraded:        #E9A23B;
+  --color-degraded-bg:     #FEF8EC;
+  --color-degraded-border: #F9DAA2;
 
   /* ---- Status: Critical ---- */
   --color-critical:        #DC2626;
   --color-critical-bg:     #FEF2F2;
   --color-critical-border: #FECACA;
 
-  /* ---- Accent — restrained cyan ---- */
-  --color-accent:          #0891B2;
-  --color-accent-light:    #E0F7FA;
-  --color-accent-border:   #A5F3FC;
+  /* ---- Accent (Resource Green) ---- */
+  --color-accent:          #23866A;
+  --color-accent-light:    #E9F5F0;
+  --color-accent-border:   #A3D4C4;
 
   /* ---- Recovery-specific ---- */
   --color-verified:        var(--color-healthy);
@@ -50,6 +56,7 @@
   --color-insufficient:    var(--color-text-tertiary);
 
   /* ---- Typography ---- */
+  --font-heading:   'Manrope', 'Inter', system-ui, -apple-system, sans-serif;
   --font-sans:      'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono:      'JetBrains Mono', 'Fira Code', ui-monospace, Consolas, monospace;
 
@@ -146,7 +153,7 @@ body {
    ============================================================ */
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-sans);
+  font-family: var(--font-heading);
   font-weight: var(--weight-semibold);
   color: var(--color-text-primary);
   line-height: var(--leading-tight);
@@ -239,6 +246,27 @@ ul, ol {
 
 .text-mono {
   font-family: var(--font-mono);
+}
+
+/* ============================================================
+   Brand Wordmark
+   ============================================================ */
+.brand-wordmark {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.28em;
+  font-family: var(--font-heading);
+  letter-spacing: -0.01em;
+}
+
+.brand-word-plant {
+  font-weight: var(--weight-bold);
+  color: var(--color-primary);
+}
+
+.brand-word-nexus {
+  font-weight: var(--weight-semibold);
+  color: var(--color-accent);
 }
 
 /* ============================================================

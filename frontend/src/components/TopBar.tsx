@@ -14,10 +14,13 @@ export function TopBar({ onNavigate }: TopBarProps = {}) {
           className="topbar-logo"
           onClick={() => onNavigate ? onNavigate('/') : undefined}
           style={{ cursor: onNavigate ? 'pointer' : 'default', background: 'none', border: 'none', padding: 0 }}
-          aria-label="Return to PlantNexus Homepage"
+          aria-label="Return to Plant Nexus Home"
         >
-          <span className="logo-icon">⬡</span>
-          <span className="logo-text">PlantNexus</span>
+          <span className="logo-icon" aria-hidden="true">⬡</span>
+          <span className="brand-wordmark">
+            <span className="brand-word-plant">Plant</span>{' '}
+            <span className="brand-word-nexus">Nexus</span>
+          </span>
         </button>
         {onNavigate && (
           <button

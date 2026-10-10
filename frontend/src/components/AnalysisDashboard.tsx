@@ -103,7 +103,7 @@ export function AnalysisDashboard({ machineId }: AnalysisDashboardProps) {
           <h3>Ready for Anomaly Detection</h3>
           <p>
             Evaluate real historical telemetry for machine <strong>{machineId}</strong> against
-            deterministic baseline rules. PlantNexus calculates relative percentage deviations
+            deterministic baseline rules. Plant Nexus calculates relative percentage deviations
             for energy, throughput, waste, and temperature, backed by fact-grounded explanations.
           </p>
           <button

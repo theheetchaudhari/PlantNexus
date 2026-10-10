@@ -14,14 +14,12 @@ export function HeroSection({ onNavigate }: HeroSectionProps) {
           </div>
 
           <h1 className="hero-title">
-            Transform Factory Telemetry into{' '}
-            <span className="hero-title-accent">Measured Plant Efficiency</span>
+            Turn Industrial Data Into{' '}
+            <span className="hero-title-accent">Resource Intelligence</span>
           </h1>
 
           <p className="hero-subtitle">
-            Enterprise-grade telemetry ingestion, automated relative-baseline anomaly detection,
-            strictly grounded root-cause explanations, and closed-loop recovery verification
-            tailored for small and medium manufacturing plants.
+            Detect inefficiencies, understand their causes, and verify recovery with evidence from industrial telemetry.
           </p>
 
           <div className="hero-ctas">
@@ -30,36 +28,36 @@ export function HeroSection({ onNavigate }: HeroSectionProps) {
               onClick={() => onNavigate('/dashboard')}
               id="hero-primary-cta"
             >
-              <span>Explore Operational Dashboard</span>
+              <span>Explore Dashboard</span>
               <span aria-hidden="true">&rarr;</span>
             </button>
 
             <button
               className="btn-secondary-hero"
-              onClick={() => onNavigate('#preview')}
+              onClick={() => onNavigate('#how-it-works')}
               id="hero-secondary-cta"
             >
-              <span>View Interactive Demo</span>
+              <span>How It Works</span>
               <span aria-hidden="true">&darr;</span>
             </button>
           </div>
 
           <div className="hero-stats-grid">
             <div className="hero-stat-item">
-              <span className="hero-stat-val">&lt; 1s</span>
-              <span className="hero-stat-label">Ingest Latency</span>
+              <span className="hero-stat-val">Sub-second</span>
+              <span className="hero-stat-label">Telemetry Ingest</span>
             </div>
             <div className="hero-stat-item">
-              <span className="hero-stat-val">100%</span>
-              <span className="hero-stat-label">Deterministic Rules</span>
+              <span className="hero-stat-val">Deterministic</span>
+              <span className="hero-stat-label">Baseline Anomaly Rules</span>
             </div>
             <div className="hero-stat-item">
-              <span className="hero-stat-val">0%</span>
-              <span className="hero-stat-label">Hallucination Risk</span>
+              <span className="hero-stat-val">Evidence-Based</span>
+              <span className="hero-stat-label">Root-Cause Explanations</span>
             </div>
             <div className="hero-stat-item">
-              <span className="hero-stat-val">Verified</span>
-              <span className="hero-stat-label">Closed-Loop Recovery</span>
+              <span className="hero-stat-val">Closed-Loop</span>
+              <span className="hero-stat-label">Recovery Verification</span>
             </div>
           </div>
         </div>

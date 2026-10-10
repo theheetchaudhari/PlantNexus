@@ -19,7 +19,7 @@ export function FinalCta({ onNavigate }: FinalCtaProps) {
             onClick={() => onNavigate('/dashboard')}
             id="cta-bottom-dashboard"
           >
-            <span>Explore Operational Dashboard</span>
+            <span>Explore Dashboard</span>
             <span aria-hidden="true">&rarr;</span>
           </button>
         </div>

@@ -9,8 +9,11 @@ export function LandingFooter({ onNavigate }: LandingFooterProps) {
         <div className="landing-footer-grid">
           <div className="footer-brand-col">
             <div className="footer-brand-logo">
-              <span style={{ color: 'var(--color-accent)' }}>⬡</span>
-              <span>PlantNexus</span>
+              <span style={{ color: 'var(--color-accent)' }} aria-hidden="true">⬡</span>
+              <span className="brand-wordmark">
+                <span className="brand-word-plant">Plant</span>{' '}
+                <span className="brand-word-nexus">Nexus</span>
+              </span>
             </div>
             <p className="footer-brand-desc">
               Industrial Resource Intelligence platform for small and medium manufacturing plants.
@@ -78,7 +81,7 @@ export function LandingFooter({ onNavigate }: LandingFooterProps) {
 
         <div className="footer-bottom-row">
           <div>
-            &copy; {new Date().getFullYear()} PlantNexus &mdash; Industrial Resource Intelligence MVP.
+            &copy; {new Date().getFullYear()} Plant Nexus &mdash; Industrial Resource Intelligence MVP.
           </div>
           <div className="footer-badges">
             <span className="footer-tech-tag">Deterministic Core</span>

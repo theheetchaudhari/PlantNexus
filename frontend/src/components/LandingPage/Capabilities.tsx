@@ -17,7 +17,7 @@ export function Capabilities() {
       desc: 'Deterministic rule evaluation paired with strictly grounded AI explanations that cite real physical sensor data.',
       features: [
         'Deterministic relative-baseline rules (Healthy, Degraded, Critical)',
-        'Strict numerical token grounding preventing LLM hallucinations',
+        'Evidence-grounded explanations citing real physical sensor telemetry',
         'Categorized evidence items with severity levels and threshold ratios',
         'Prioritized maintenance steps with explicit safety constraints',
       ],
@@ -44,7 +44,7 @@ export function Capabilities() {
             Built for Real Industrial Demands
           </h2>
           <p className="section-desc">
-            Explore the core architectural components powering the PlantNexus operational dashboard today.
+            Explore the core architectural components powering the Plant Nexus operational dashboard.
           </p>
         </div>
 

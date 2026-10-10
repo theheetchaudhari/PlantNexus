@@ -19,10 +19,13 @@ export function LandingNavbar({ onNavigate }: LandingNavbarProps) {
           <button
             className="landing-logo"
             onClick={() => handleLinkClick('/')}
-            aria-label="PlantNexus Home"
+            aria-label="Plant Nexus Home"
           >
-            <span className="landing-logo-icon">⬡</span>
-            <span>PlantNexus</span>
+            <span className="landing-logo-icon" aria-hidden="true">⬡</span>
+            <span className="brand-wordmark">
+              <span className="brand-word-plant">Plant</span>{' '}
+              <span className="brand-word-nexus">Nexus</span>
+            </span>
             <span className="landing-logo-badge">Edge AI</span>
           </button>
 

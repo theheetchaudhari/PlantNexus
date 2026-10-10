@@ -31,6 +31,8 @@
 
 .logo-icon {
   font-size: var(--text-xl);
+  color: var(--color-accent);
+  line-height: 1;
 }
 
 .topbar-home-btn {
@@ -39,16 +41,19 @@
   color: var(--color-text-secondary);
   background-color: var(--color-bg-primary);
   border: var(--border-width) solid var(--color-border);
-  padding: 3px 8px;
+  padding: 4px 10px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .topbar-home-btn:hover {
   color: var(--color-primary);
   background-color: var(--color-primary-lighter);
-  border-color: var(--color-primary-light);
+  border-color: var(--color-accent);
 }
 
 .machine-selector {
@@ -138,7 +143,8 @@
 
 .tab-button.active {
   color: var(--color-primary);
-  border-bottom-color: var(--color-primary);
+  border-bottom-color: var(--color-accent);
+  font-weight: var(--weight-semibold);
 }
 
 /* Main Content */

@@ -38,10 +38,10 @@ export function DashboardPreview({ onNavigate }: DashboardPreviewProps) {
         <div className="section-header-centered">
           <span className="section-tag">Interactive Workspace Preview</span>
           <h2 className="section-title">
-            The PlantNexus Operator Interface
+            The Plant Nexus Operator Interface
           </h2>
           <p className="section-desc">
-            Explore a static, fully offline simulation of the PlantNexus monitoring workspace.
+            Explore a static, fully offline simulation of the Plant Nexus monitoring workspace.
             Click the tabs below to preview each operational capability.
           </p>
         </div>
@@ -66,7 +66,7 @@ export function DashboardPreview({ onNavigate }: DashboardPreviewProps) {
               <span className="window-dot green"></span>
             </div>
             <div className="window-title">
-              <span>⬡ PlantNexus UI</span>
+              <span>⬡ Plant Nexus UI</span>
               <span>&mdash;</span>
               <span>M-017 (Illustrative CNC Milling Center)</span>
             </div>
@@ -267,7 +267,7 @@ export function DashboardPreview({ onNavigate }: DashboardPreviewProps) {
                   </div>
 
                   <div className="preview-metric-box">
-                    <div className="preview-metric-label">Grounded AI Narrative (Zero Hallucination)</div>
+                    <div className="preview-metric-label">Evidence-Grounded AI Explanation</div>
                     <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-primary)', lineHeight: 1.6, marginBottom: 10 }}>
                       &ldquo;Machine M-017 is operating in DEGRADED condition. Real-time power draw surged to <strong>48.20 kW</strong> (+39.7% over 34.50 kW baseline). Concurrently, spindle temperature rose to <strong>82.10 &deg;C</strong> while production throughput dropped to <strong>112.0 units/min</strong> with <strong>3.40 kg</strong> scrap waste.&rdquo;
                     </p>
@@ -352,7 +352,7 @@ export function DashboardPreview({ onNavigate }: DashboardPreviewProps) {
               onClick={() => onNavigate('/dashboard')}
               id="cta-preview-launch"
             >
-              <span>Explore Operational Dashboard</span>
+              <span>Explore Dashboard</span>
               <span aria-hidden="true">&rarr;</span>
             </button>
           </div>

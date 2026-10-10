@@ -36,12 +36,12 @@ export function HowItWorks() {
     <section className="landing-section how-it-works-section" id="how-it-works">
       <div className="landing-container">
         <div className="section-header-centered">
-          <span className="section-tag">End-to-End Pipeline</span>
+          <span className="section-tag">Collect &rarr; Analyze &rarr; Detect &rarr; Explain &rarr; Act &rarr; Verify</span>
           <h2 className="section-title">
-            How PlantNexus Works
+            How Plant Nexus Works
           </h2>
           <p className="section-desc">
-            A six-stage closed-loop operational pipeline engineered for verifiable industrial reliability.
+            Helps operators identify inefficiencies, understand the evidence behind alerts, take corrective action, and verify that machine conditions improve.
           </p>
         </div>
 

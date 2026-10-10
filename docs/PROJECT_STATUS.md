@@ -268,14 +268,64 @@ None.
 
 ---
 
+## Milestone 9 — Brand, Design System & Navigation Refinement
+
+**Status: COMPLETE (2026-10-10).**
+
+### Completed
+
+- **Brand Identity & Title:**
+  - Product brand name updated to **Plant Nexus** with "Plant" and "Nexus" separated in logo wordmark across landing page, dashboard TopBar, preview window, and footer.
+  - Document title set to `Plant Nexus | Industrial Resource Intelligence` with dynamic title updates for dashboard routes (`Plant Nexus | Overview`, `Plant Nexus | Telemetry Trends`, `Plant Nexus | Analysis & Evidence`, `Plant Nexus | Recovery Verification`).
+  - Meta description in `index.html` updated to reflect Plant Nexus.
+- **Locked Design System:**
+  - Deep Forest (`#142D2B`) set as primary brand and text color.
+  - Resource Green (`#23866A`) applied for accents, active tabs, and healthy/verified status states.
+  - Soft Neutral (`#F7F8F4`) applied for primary page backgrounds.
+  - Signal Amber (`#E9A23B`) applied for degraded states and warnings.
+  - Typography: `Manrope` loaded via Google Fonts and applied to all headings (`h1`–`h6`, `.hero-title`, `.section-title`, `.final-cta-title`); `Inter` retained for body text, navigation, tables, and buttons; `JetBrains Mono` preserved for telemetry codes and technical metrics.
+- **Landing Page Messaging & Copy Refinement:**
+  - Hero headline: *"Turn Industrial Data Into Resource Intelligence"*
+  - Hero subtitle: *"Detect inefficiencies, understand their causes, and verify recovery with evidence from industrial telemetry."*
+  - CTAs: Primary *"Explore Dashboard"*, Secondary *"How It Works"*.
+  - Hero metrics updated to reflect real capabilities without unsupported absolute claims: *Sub-second Telemetry Ingest*, *Deterministic Baseline Anomaly Rules*, *Evidence-Based Root-Cause Explanations*, *Closed-Loop Recovery Verification* (removed *"0% Hallucination Risk"*).
+  - Problem & Solution copy refined to focus directly on excessive energy consumption, production downtime, and industrial waste; brand updated to *"The Plant Nexus Fix"*.
+  - Pipeline section updated with clear outcome benefit statement and *"How Plant Nexus Works"*.
+  - Offline demo preview and final CTA updated to *"Explore Dashboard"*; static offline notice preserved.
+- **Navigation & Routing:**
+  - Preserved custom router with deep links: `/`, `/dashboard`, `/dashboard/overview`, `/dashboard/telemetry`, `/dashboard/analysis`, `/dashboard/recovery`, plus shorthand deep link fallbacks (`/overview`, `/telemetry`, `/analysis`, `/recovery`).
+  - Improved cross-page anchor scrolling from dashboard back to landing page sections (`/#how-it-works`, etc.).
+  - TopBar home button (`← Home`) and tab active indicators tested and verified.
+- **Verification & Builds:**
+  - `npm run build`: Exit code 0, 0 errors.
+  - `eslint` on modified files: Exit code 0, 0 errors, 0 warnings.
+  - Browser subagent verified live on Vite dev server: Title, wordmark, hero copy, dashboard navigation, all 4 tabs, and return home button.
+
+### Dependencies
+
+None added (zero-dependency frontend architecture maintained).
+
+### Evidence
+
+- `npm run build` completed cleanly.
+- `npx eslint src/App.tsx src/router.ts src/components/TopBar.tsx src/components/Footer.tsx src/components/LandingPage/* src/components/AnalysisDashboard.tsx`: 0 errors.
+- Visual browser session recorded and verified: `brand_nav_verify_1791656309398.webp`.
+
+### Blockers
+
+None for frontend or local execution. Direct Vercel deep-link refreshes will require an SPA rewrite rule (`vercel.json`) upon deployment (see completion report).
+
+---
+
 ## Current milestone and next task
 
-**Current:** Milestones 1–5, 7, and 8 are COMPLETE. The public landing page at `/` is live with a static interactive demo preview, and the operational dashboard remains fully accessible at `/dashboard` with all subpages preserved.
+**Current:** Milestones 1–5, 7, 8, and 9 are COMPLETE. Brand identity, locked design system tokens, concise outcome-focused copy, and unified navigation are fully in place across both the public landing page and the operational dashboard.
 
 **Exact next task options (pick one):**
 
-1. **Milestone 6 (AWS Integration):** Verify official hackathon rules regarding AWS requirements; implement smallest compliant integration if needed.
-2. **Ops (approval required):** Apply `20261009194500_create_intelligence_tables.sql` to hosted Supabase, confirming `analysisId` and `verificationId` are non-null on future calls.
+1. **Milestone 6 (AWS Integration):** Verify hackathon rules regarding AWS requirements; implement compliant integration if needed.
+2. **Ops (approval required):** Apply `20261009194500_create_intelligence_tables.sql` to hosted Supabase.
 3. **Demo Presentation / Submission Preparation:** Prepare presentation assets, slides, or submission recording.
 
 Do not commit, deploy, or modify hosted Supabase without explicit user approval.
+

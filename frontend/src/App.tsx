@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { TopBar } from './components/TopBar';
 import { TabNavigation } from './components/TabNavigation';
 import type { TabId } from './components/TabNavigation';
@@ -21,6 +22,14 @@ function App() {
       case 'recovery': return 'Recovery Verification';
     }
   };
+
+  useEffect(() => {
+    if (path === '/dashboard') {
+      document.title = `Plant Nexus | ${getTabLabel(tab)}`;
+    } else {
+      document.title = 'Plant Nexus | Industrial Resource Intelligence';
+    }
+  }, [path, tab]);
 
   // Route: Landing page at '/'
   if (path === '/') {

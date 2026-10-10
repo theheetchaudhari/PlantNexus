@@ -162,7 +162,7 @@
 .hero-section {
   position: relative;
   padding: 80px 0 60px;
-  background: linear-gradient(180deg, #FFFFFF 0%, #F5F7FA 100%);
+  background: linear-gradient(180deg, #FFFFFF 0%, var(--color-bg-primary) 100%);
   border-bottom: var(--border-width) solid var(--color-border);
   overflow: hidden;
 }
@@ -174,8 +174,8 @@
   right: 0;
   bottom: 0;
   background-image: 
-    linear-gradient(to right, rgba(27, 58, 92, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(27, 58, 92, 0.04) 1px, transparent 1px);
+    linear-gradient(to right, rgba(20, 45, 43, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(20, 45, 43, 0.04) 1px, transparent 1px);
   background-size: 32px 32px;
   pointer-events: none;
 }
@@ -194,7 +194,7 @@
   padding: 6px 14px;
   border-radius: var(--radius-full);
   background-color: var(--color-primary-lighter);
-  border: 1px solid rgba(27, 58, 92, 0.15);
+  border: 1px solid rgba(20, 45, 43, 0.15);
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
   color: var(--color-primary);
@@ -208,7 +208,7 @@
   height: 7px;
   border-radius: 50%;
   background-color: var(--color-healthy);
-  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.25);
+  box-shadow: 0 0 0 2px rgba(35, 134, 106, 0.25);
   animation: pulse-dot 2s infinite;
 }
 
@@ -218,6 +218,7 @@
 }
 
 .hero-title {
+  font-family: var(--font-heading);
   font-size: clamp(2rem, 4vw, 3.25rem);
   font-weight: var(--weight-bold);
   line-height: 1.15;
@@ -260,7 +261,7 @@
   padding: 14px 28px;
   border-radius: var(--radius-md);
   border: 1px solid var(--color-primary);
-  box-shadow: 0 4px 14px rgba(27, 58, 92, 0.25);
+  box-shadow: 0 4px 14px rgba(20, 45, 43, 0.25);
   transition: all var(--transition-fast);
   cursor: pointer;
 }
@@ -268,7 +269,7 @@
 .btn-primary-hero:hover {
   background-color: var(--color-primary-light);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(27, 58, 92, 0.35);
+  box-shadow: 0 6px 20px rgba(20, 45, 43, 0.35);
   color: #fff;
 }
 
@@ -363,6 +364,7 @@
 }
 
 .section-title {
+  font-family: var(--font-heading);
   font-size: clamp(1.75rem, 3vw, 2.25rem);
   font-weight: var(--weight-bold);
   color: var(--color-text-primary);
@@ -904,7 +906,7 @@
    Final CTA Section
    ------------------------------------------------------------ */
 .final-cta-section {
-  background: linear-gradient(135deg, #1B3A5C 0%, #0F2338 100%);
+  background: linear-gradient(135deg, #142D2B 0%, #0E201E 100%);
   color: #FFFFFF;
   padding: 80px 0;
   border-bottom: none;
@@ -917,6 +919,7 @@
 }
 
 .final-cta-title {
+  font-family: var(--font-heading);
   font-size: clamp(2rem, 3.5vw, 2.75rem);
   font-weight: var(--weight-bold);
   color: #FFFFFF;
@@ -926,7 +929,7 @@
 
 .final-cta-desc {
   font-size: var(--text-md);
-  color: #C5D3E3;
+  color: #C2D1CF;
   line-height: 1.6;
   margin-bottom: var(--space-8);
   max-width: 640px;
@@ -946,25 +949,33 @@
   border-radius: var(--radius-md);
   border: none;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(8, 145, 178, 0.4);
+  box-shadow: 0 4px 16px rgba(35, 134, 106, 0.4);
   transition: all var(--transition-fast);
 }
 
 .btn-final-cta:hover {
-  background-color: #06B6D4;
+  background-color: #1E755C;
   transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(8, 145, 178, 0.5);
+  box-shadow: 0 6px 24px rgba(35, 134, 106, 0.55);
 }
 
 /* ------------------------------------------------------------
    Landing Footer
    ------------------------------------------------------------ */
 .landing-footer {
-  background-color: #0B1726;
-  color: #8B9BAC;
+  background-color: #0E201E;
+  color: #8C9F9D;
   padding: 60px 0 30px;
   font-size: var(--text-sm);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.landing-footer .brand-word-plant {
+  color: #FFFFFF;
+}
+
+.landing-footer .brand-word-nexus {
+  color: #34D399;
 }
 
 .landing-footer-grid {

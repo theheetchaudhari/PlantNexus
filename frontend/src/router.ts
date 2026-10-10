@@ -13,11 +13,16 @@ function parseLocation(): RouteState {
 
   const pathname = window.location.pathname.toLowerCase();
   const searchParams = new URLSearchParams(window.location.search);
-  
-  // Check if route is dashboard
+
+  // Direct shorthand deep links: /overview, /telemetry, /analysis, /recovery
+  if (pathname === '/overview' || pathname === '/telemetry' || pathname === '/analysis' || pathname === '/recovery') {
+    return { path: '/dashboard', tab: pathname.slice(1) as TabId };
+  }
+
+  // Dashboard routes: /dashboard, /dashboard/overview, /dashboard/telemetry, etc.
   if (pathname === '/dashboard' || pathname.startsWith('/dashboard/')) {
     const subRoute = pathname.replace(/^\/dashboard\/?/, '').split('/')[0];
-    
+
     let tab: TabId = 'overview';
     if (subRoute === 'telemetry' || subRoute === 'analysis' || subRoute === 'recovery' || subRoute === 'overview') {
       tab = subRoute;
@@ -29,7 +34,8 @@ function parseLocation(): RouteState {
     }
     return { path: '/dashboard', tab };
   }
-  
+
+  // Default: public landing page at '/' or graceful fallback for unmapped paths
   return { path: '/', tab: 'overview' };
 }
 
@@ -47,8 +53,22 @@ export function useRouter() {
   const navigate = useCallback((to: string) => {
     if (typeof window === 'undefined') return;
 
-    // Handle hash links on same page
+    // Handle hash links when currently on landing page vs from other pages
     if (to.startsWith('#')) {
+      if (window.location.pathname !== '/') {
+        window.history.pushState(null, '', `/${to}`);
+        setRouteState(parseLocation());
+        setTimeout(() => {
+          const el = document.getElementById(to.slice(1));
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+          } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        }, 60);
+        return;
+      }
+
       const el = document.getElementById(to.slice(1));
       if (el) {
         el.scrollIntoView({ behavior: 'smooth' });
@@ -59,7 +79,7 @@ export function useRouter() {
     // Handle cross-page hash navigation like /#preview
     if (to.startsWith('/#')) {
       const hash = to.slice(2);
-      window.history.pushState(null, '', '/');
+      window.history.pushState(null, '', `/#${hash}`);
       setRouteState(parseLocation());
       setTimeout(() => {
         const el = document.getElementById(hash);
@@ -68,7 +88,7 @@ export function useRouter() {
         } else {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-      }, 50);
+      }, 60);
       return;
     }
 
