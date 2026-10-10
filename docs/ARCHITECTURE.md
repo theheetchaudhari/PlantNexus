@@ -127,7 +127,40 @@ Body: `{ machineId: string (required), limit?: number default 100 }`.
 
 The `explanation` field is always present; it contains the full `explainAnalysis` result (see §Explanation below).
 
-No other routes. No recovery-verify or dashboard APIs.
+### `POST /api/verify-recovery` & `POST /api/recovery/verify` — IMPLEMENTED (Milestone 4)
+
+Body: `{ machineId: string (required), limit?: number default 50, minConsecutive?: number default 3, baseline?: object }`.
+
+400 if missing `machineId`, non-positive `limit`, or `minConsecutive < 2`. 200 always on successful evaluation, even if persistence table is missing:
+
+```json
+{
+  "success": true,
+  "data": {
+    "verificationId": null,
+    "machineId": "M-017",
+    "verificationStatus": "VERIFIED",
+    "verdict": "IMPROVED",
+    "timestamp": "2026-10-10T12:00:00.000Z",
+    "readingsEvaluated": 10,
+    "consecutiveHealthy": 3,
+    "requiredConsecutiveHealthy": 3,
+    "improvementScore": 1.0,
+    "currentCondition": "HEALTHY",
+    "metricsComparison": {
+      "energy": { "current": 45.1, "baseline": 45.0, "unit": "kW", "deviationPct": 0.22, "adversePct": 0.22, "thresholdPct": 15, "status": "healthy" },
+      "production": { "current": 120.5, "baseline": 120.0, "unit": "units/hour", "deviationPct": 0.42, "adversePct": 0, "thresholdPct": 5, "status": "healthy" },
+      "waste": { "current": 1.08, "baseline": 1.1, "unit": "kg", "deviationPct": -1.82, "adversePct": 0, "thresholdPct": 15, "status": "healthy" },
+      "temperature": { "current": 68.4, "baseline": 68.5, "unit": "°C", "deviationPct": -0.15, "adversePct": 0, "thresholdPct": 8, "status": "healthy" }
+    },
+    "reason": "Recovery verified: sustained 3 consecutive reading(s) within baseline tolerances.",
+    "summary": "Machine M-017 recovery verification: status VERIFIED ...",
+    "quality": { "status": "ok", "warnings": [] }
+  }
+}
+```
+
+`verificationId` is null when insert into `recovery_verifications` fails due to unmigrated table. HTTP response returns 200 with full verification data.
 
 ## Analytics calculations — IMPLEMENTED
 
@@ -202,6 +235,21 @@ If `OPENAI_API_KEY` is absent or blank, `explainAnalysis` returns the determinis
 ### Grounding check
 
 `narrativeIsGrounded(narrative, facts)` verifies every standalone numeric token in the LLM narrative is an exact value present in the facts payload (using `Number()` equality, not substring search). Numbers embedded inside identifiers like `M-017` are skipped via a lookbehind regex `(?<![A-Za-z0-9-])`. If grounding fails, the fallback narrative is used and `source` is `"fallback"`.
+
+## Recovery Verification — IMPLEMENTED (Milestone 4)
+
+Module `backend/src/recovery.js`. Evaluates whether recent machine telemetry demonstrates verifiable recovery following degradation.
+
+### Core Rules & Invariants
+
+1. **Evidence-Based Baseline:** Compares against healthy baseline (options.baseline, options.baselineRecords, machine specification `M-017`, or historical tail). Uses the same `METRIC_RULES` soft/hard % thresholds from `detector.js`.
+2. **Consecutive Healthy Threshold:** Requires a minimum number of consecutive healthy readings (`minConsecutiveHealthy`, default 3, minimum 2). A single healthy reading **never** declares `VERIFIED`.
+3. **Four Deterministic Outcomes:**
+   - `VERIFIED` (`verdict: IMPROVED`): Sustained consecutive healthy readings satisfied.
+   - `RECOVERING` (`verdict: PARTIALLY_IMPROVED`): Healthy reading streak < required minimum, or degraded readings showing >=15% reduction in adverse deviation vs peak degradation.
+   - `NOT_RECOVERED` (`verdict: NO_IMPROVEMENT` or `DEGRADED`): Persistent or worsening degradation without recovery trend.
+   - `INSUFFICIENT_DATA` (`verdict: NO_IMPROVEMENT`): Array length < minConsecutive, missing records, or baseline unavailable.
+4. **No Equipment Actuation:** Strictly software-level verification of sensor telemetry. No industrial equipment control.
 
 ## Database
 

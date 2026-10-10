@@ -1,10 +1,10 @@
 # PlantNexus project status
 
-Authoritative tracker. Last verified: **2026-10-10 (Milestone 3 session)**. Do not mark work complete from plans alone.
+Authoritative tracker. Last verified: **2026-10-10 (Milestone 4 session)**. Do not mark work complete from plans alone.
 
-**Git:** branch `main` tracking `origin/main` at `52a2724` (`feat: connect simulator to backend`). Large **uncommitted** working tree: backend analytics/detector/explain/analyze, tests, `@supabase/supabase-js`, `supabase/` migrations, `.gitignore` (`/backend/.env`). **Do not discard this work.**
+**Git:** branch `main` tracking `origin/main` at `51f3bd5` (`feat: complete PlantNexus analytics and AI explanations`). Working tree contains Milestone 4 recovery verification (`backend/src/recovery.js`, `backend/src/recovery.test.js`, updated `server.js` and `server.test.js`, docs).
 
-**Tests this session (executed):** `node --test` → **85 pass / 0 fail** (analytics 50, detector 10, explain 19, HTTP 6 via live Supabase). Prior session report of 66 passing is superseded.
+**Tests this session (executed):** `node --test` → **111 pass / 0 fail** (analytics 50, detector 10, explain 19, recovery 22, HTTP 10 via live Supabase). Prior session report of 85 passing is superseded.
 
 ---
 
@@ -107,26 +107,39 @@ None.
 
 ## Milestone 4 — Before-and-after recovery verification
 
-**Status: NOT STARTED** except simulator recovery **scenario** and unused SQL table.
+**Status: COMPLETE (2026-10-10).**
 
 ### Completed
 
-- Simulator `--scenario recovery` interpolates baselines over 10 steps.
-- Migration defines `recovery_verifications` (not on host).
+- `backend/src/recovery.js` module implementing evidence-based recovery validation.
+- Compares measurements against healthy baselines using project's existing `METRIC_RULES` (soft/hard relative % tolerances).
+- Requires configurable minimum consecutive healthy readings (`minConsecutiveHealthy`, default 3, minimum 2) before declaring recovery.
+- Evaluates four distinct deterministic outcomes:
+  - `VERIFIED` (verdict: `IMPROVED`): Sustained consecutive healthy readings satisfied.
+  - `RECOVERING` (verdict: `PARTIALLY_IMPROVED`): Readings in healthy tolerance but consecutive count not yet met, or measurements showing >=15% reduction in adverse deviation vs peak degradation.
+  - `NOT_RECOVERED` (verdict: `NO_IMPROVEMENT` or `DEGRADED`): Persistent or worsening degradation without recovery trend.
+  - `INSUFFICIENT_DATA` (verdict: `NO_IMPROVEMENT`): Insufficient readings (< minConsecutive), missing telemetry, or baseline unavailable.
+- Evidence-based result returns: `machineId`, `verificationStatus`, `verdict`, `timestamp`, `readingsEvaluated`, `consecutiveHealthy`, `requiredConsecutiveHealthy`, `improvementScore`, `currentCondition`, `metricsComparison` (per-metric current, baseline, deviationPct, adversePct, thresholdPct, status), `reason`, `summary`, and `quality`.
+- Endpoints `POST /api/verify-recovery` and `POST /api/recovery/verify` mounted on Express backend.
+- Database persistence handling: attempts insert into `public.recovery_verifications`; gracefully catches missing hosted table (`verificationId: null`, HTTP 200 returned).
+- 22 unit tests in `recovery.test.js` + 4 integration tests in `server.test.js` (total 26 tests for M4).
 
 ### Pending
 
-- Compare windowed metrics before vs after recovery; verdicts IMPROVED / PARTIALLY_IMPROVED / NO_IMPROVEMENT / DEGRADED.
-- API + persist (after tables exist).
-- No real machine actuation.
+- Apply `20261009194500_create_intelligence_tables.sql` to hosted Supabase to enable persistence for `recovery_verifications` (blocked on explicit user approval).
 
 ### Dependencies
 
-M1 telemetry + M2 condition labels. Simulator recovery for demo data.
+M1 telemetry ingest + M2 metric definitions and baseline rules. Simulator `--scenario recovery` for organic test data.
+
+### Evidence
+
+- `node --test` → **111 pass / 0 fail** (2026-10-10, Milestone 4 session).
+- HTTP endpoints `POST /api/verify-recovery` and `POST /api/recovery/verify` tested and passing.
 
 ### Blockers
 
-Same missing hosted intelligence/recovery tables.
+None for verification API. Persistence is degraded (`verificationId: null`) until hosted migration is approved.
 
 ---
 
@@ -200,12 +213,11 @@ M3–M5 incomplete. M2 persist incomplete on host.
 
 ## Current milestone and next task
 
-**Current:** Milestones 1–3 complete in working tree. M2 persist blocked on hosted SQL. M3 explanation live in fallback mode; LLM path activates when `OPENAI_API_KEY` is set in `backend/.env`.
+**Current:** Milestones 1–4 complete in working tree. Recovery verification is live with full deterministic test coverage (111 passing tests). DB persistence for intelligence/recovery tables is gracefully handled and pending hosted SQL migration approval.
 
 **Exact next task options (pick one):**
 
-1. **Ops (approval required):** Apply `20261009194500_create_intelligence_tables.sql` to hosted Supabase, then re-run `POST /api/analyze` to confirm `analysisId` is non-null.
-2. **Milestone 4:** Before/after recovery verification API — requires intelligence tables on host first.
-3. **Milestone 5:** React dashboard — wire `GET /api/health`, `GET /api/telemetry`, `POST /api/analyze`; no hosted table dependency.
+1. **Milestone 5 (React dashboard):** Implement frontend dashboard consuming `GET /api/health`, `GET /api/telemetry`, `POST /api/analyze`, and `POST /api/verify-recovery`.
+2. **Ops (approval required):** Apply `20261009194500_create_intelligence_tables.sql` to hosted Supabase, confirming `analysisId` and `verificationId` are non-null on future calls.
 
 Do not commit, deploy, or modify hosted Supabase without explicit user approval.

@@ -7,6 +7,7 @@ const { createClient } = require("@supabase/supabase-js");
 const { computeAnalytics } = require("./analytics");
 const { detectAnomalies } = require("./detector");
 const { explainAnalysis, buildFallbackExplanation } = require("./explain");
+const { verifyRecovery } = require("./recovery");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -322,6 +323,100 @@ app.post("/api/analyze", async (req, res) => {
     return res.status(500).json({ success: false, error: "Server error" });
   }
 });
+
+// Evidence-based recovery verification (Milestone 4)
+async function handleVerifyRecovery(req, res) {
+  const machineId =
+    typeof req.body?.machineId === "string" ? req.body.machineId.trim() : "";
+  const limitRaw = req.body?.limit;
+  const limit =
+    limitRaw === undefined || limitRaw === null ? 50 : Number(limitRaw);
+  const minConsecutiveRaw = req.body?.minConsecutive;
+  const minConsecutive =
+    minConsecutiveRaw === undefined || minConsecutiveRaw === null
+      ? 3
+      : Number(minConsecutiveRaw);
+  const customBaseline = req.body?.baseline;
+
+  if (!machineId) {
+    return res.status(400).json({
+      success: false,
+      error: "machineId is required and must be a non-empty string",
+    });
+  }
+
+  if (!Number.isFinite(limit) || limit <= 0) {
+    return res.status(400).json({
+      success: false,
+      error: "limit must be a positive number",
+    });
+  }
+
+  if (!Number.isFinite(minConsecutive) || minConsecutive < 2) {
+    return res.status(400).json({
+      success: false,
+      error: "minConsecutive must be an integer >= 2",
+    });
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("telemetry")
+      .select("*")
+      .eq("machine_id", machineId)
+      .order("timestamp", { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error("[Supabase] Fetch telemetry for verify-recovery failed:", error.message);
+      return res.status(500).json({ success: false, error: "Database error" });
+    }
+
+    const records = data || [];
+    const verification = verifyRecovery(records, {
+      machineId,
+      minConsecutiveHealthy: minConsecutive,
+      baseline: customBaseline,
+    });
+
+    let verificationId = null;
+    const { data: saved, error: saveError } = await supabase
+      .from("recovery_verifications")
+      .insert({
+        machine_id: machineId,
+        verdict: verification.verdict,
+        summary: verification.summary,
+        improvement_score: verification.improvementScore,
+        metrics_comparison: verification.metricsComparison,
+      })
+      .select("id")
+      .single();
+
+    if (saveError) {
+      // Recovery verification still succeeds even if persistence table is not yet migrated
+      console.error(
+        "[Supabase] Persist recovery_verifications failed:",
+        saveError.message
+      );
+    } else {
+      verificationId = saved?.id ?? null;
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        verificationId,
+        ...verification,
+      },
+    });
+  } catch (error) {
+    console.error("[Backend] Unexpected verify-recovery error:", error.message);
+    return res.status(500).json({ success: false, error: "Server error" });
+  }
+}
+
+app.post("/api/verify-recovery", handleVerifyRecovery);
+app.post("/api/recovery/verify", handleVerifyRecovery);
 
 if (require.main === module) {
   app.listen(PORT, () => {
