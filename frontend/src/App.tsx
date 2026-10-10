@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { TopBar } from './components/TopBar';
 import { TabNavigation } from './components/TabNavigation';
 import type { TabId } from './components/TabNavigation';
@@ -7,13 +6,15 @@ import { OverviewDashboard } from './components/OverviewDashboard';
 import { TelemetryTrends } from './components/TelemetryTrends';
 import { AnalysisDashboard } from './components/AnalysisDashboard';
 import { RecoveryDashboard } from './components/RecoveryDashboard';
+import { LandingPage } from './components/LandingPage/LandingPage';
+import { useRouter } from './router';
 import './App.css';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<TabId>('overview');
+  const { path, tab, navigate, setDashboardTab } = useRouter();
 
-  const getTabLabel = (tab: TabId) => {
-    switch (tab) {
+  const getTabLabel = (currentTab: TabId) => {
+    switch (currentTab) {
       case 'overview': return 'Overview';
       case 'telemetry': return 'Telemetry Trends';
       case 'analysis': return 'Analysis & Evidence';
@@ -21,26 +22,32 @@ function App() {
     }
   };
 
+  // Route: Landing page at '/'
+  if (path === '/') {
+    return <LandingPage onNavigate={navigate} />;
+  }
+
+  // Route: Operational Dashboard at '/dashboard' (with subpages /dashboard/:tab)
   return (
     <div className="app-shell">
-      <TopBar />
-      <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+      <TopBar onNavigate={navigate} />
+      <TabNavigation activeTab={tab} onTabChange={setDashboardTab} />
       
       <main className="main-content">
-          {activeTab === 'overview' ? (
-            <OverviewDashboard machineId="M-017" />
-          ) : activeTab === 'telemetry' ? (
-            <TelemetryTrends machineId="M-017" />
-          ) : activeTab === 'analysis' ? (
-            <AnalysisDashboard machineId="M-017" />
-          ) : activeTab === 'recovery' ? (
-            <RecoveryDashboard machineId="M-017" />
-          ) : (
-            <div className="tab-panel-placeholder" role="tabpanel" id={`panel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
-              <h2>{getTabLabel(activeTab)} Content</h2>
-              <p>Placeholder panel for the {activeTab} tab. To be implemented in subsequent tasks.</p>
-            </div>
-          )}
+        {tab === 'overview' ? (
+          <OverviewDashboard machineId="M-017" />
+        ) : tab === 'telemetry' ? (
+          <TelemetryTrends machineId="M-017" />
+        ) : tab === 'analysis' ? (
+          <AnalysisDashboard machineId="M-017" />
+        ) : tab === 'recovery' ? (
+          <RecoveryDashboard machineId="M-017" />
+        ) : (
+          <div className="tab-panel-placeholder" role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
+            <h2>{getTabLabel(tab)} Content</h2>
+            <p>Placeholder panel for the {tab} tab. To be implemented in subsequent tasks.</p>
+          </div>
+        )}
       </main>
 
       <Footer />

@@ -226,13 +226,55 @@ None for end-to-end local demo. Ephemeral persistence remains until hosted SQL m
 
 ---
 
+---
+
+## Milestone 8 — Public Landing Page and Client Routing
+
+**Status: COMPLETE (2026-10-10).**
+
+### Completed
+
+- Lightweight, zero-dependency client routing (`frontend/src/router.ts`) handling root `/`, operational dashboard `/dashboard`, and direct subpage tab deep-links (`/dashboard/overview`, `/dashboard/telemetry`, `/dashboard/analysis`, `/dashboard/recovery`).
+- Full HTML5 history navigation with `pushState` and `popstate` support.
+- Fully responsive public landing page (`frontend/src/components/LandingPage/`):
+  - Responsive navbar with PlantNexus branding, section navigation, and "Explore Dashboard" CTA.
+  - Industrial hero section with value propositions, dual CTAs, and performance metrics.
+  - Problem & Solution section focusing on energy inefficiency, production losses, and industrial waste.
+  - Static interactive workspace demo preview:
+    - Prominently labeled with "OFFLINE PREVIEW" and illustrative data notice.
+    - Zero backend/Supabase dependency; renders completely offline.
+    - Interactive 4-tab demo preview: Overview (metric cards), Telemetry Trends (Recharts area chart), Analysis & Evidence (deterministic rule & grounded AI narrative), Recovery Verification (delta matrix & verdict).
+  - "How It Works" 6-stage pipeline: Collect → Analyze → Detect → Explain → Act → Verify.
+  - Current Capabilities section: Telemetry Trends, Evidence-Based Anomaly Analysis, Recovery Verification.
+  - Final CTA banner and comprehensive footer with tech stack and architecture tags.
+- Updated `TopBar.tsx` with `onNavigate` and `← Home` button for smooth switching between operational dashboard and landing page.
+- Layout preserved: `.app-shell` retains `max-width: 1200px` for the dashboard, while `#root` accommodates full-bleed responsive sections for the landing page.
+- Production build: `npm run build` (`tsc -b && vite build`) passed with zero errors.
+- Visual & functional browser verification completed across all routes and demo tabs.
+
+### Dependencies
+
+Frontend: `react`, `react-dom`, `recharts` (no new packages added).
+
+### Evidence
+
+- `npm run build`: Exit code 0, 617 modules transformed, assets generated cleanly.
+- `eslint` on new/modified files: Exit code 0, 0 errors, 0 warnings.
+- Browser test: Live DOM and visual verification of all sections, 4 demo tabs, `/dashboard` route switching, and `← Home` return.
+
+### Blockers
+
+None.
+
+---
+
 ## Current milestone and next task
 
-**Current:** Milestones 1–5 and Milestone 7 are COMPLETE. All four frontend tabs (Overview, Telemetry Trends, Analysis & Evidence, Recovery Verification) are fully integrated, tested, and demo-ready with the factory simulator.
+**Current:** Milestones 1–5, 7, and 8 are COMPLETE. The public landing page at `/` is live with a static interactive demo preview, and the operational dashboard remains fully accessible at `/dashboard` with all subpages preserved.
 
 **Exact next task options (pick one):**
 
-1. **Milestone 6 (AWS Integration):** Verify official hackathon rules regarding AWS requirements; implement smallest compliant integration (e.g. Bedrock for AI explanation or API Gateway wrapper).
+1. **Milestone 6 (AWS Integration):** Verify official hackathon rules regarding AWS requirements; implement smallest compliant integration if needed.
 2. **Ops (approval required):** Apply `20261009194500_create_intelligence_tables.sql` to hosted Supabase, confirming `analysisId` and `verificationId` are non-null on future calls.
 3. **Demo Presentation / Submission Preparation:** Prepare presentation assets, slides, or submission recording.
 
