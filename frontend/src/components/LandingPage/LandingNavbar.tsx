@@ -21,7 +21,7 @@ export function LandingNavbar({ onNavigate }: LandingNavbarProps) {
             onClick={() => handleLinkClick('/')}
             aria-label="Plant Nexus Home"
           >
-            <span className="landing-logo-icon" aria-hidden="true">⬡</span>
+            <img src="/logo.png" alt="Plant Nexus Logo" className="landing-logo-img" />
             <span className="brand-wordmark">
               <span className="brand-word-plant">Plant</span>{' '}
               <span className="brand-word-nexus">Nexus</span>

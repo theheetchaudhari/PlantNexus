@@ -16,7 +16,7 @@ export function TopBar({ onNavigate }: TopBarProps = {}) {
           style={{ cursor: onNavigate ? 'pointer' : 'default', background: 'none', border: 'none', padding: 0 }}
           aria-label="Return to Plant Nexus Home"
         >
-          <span className="logo-icon" aria-hidden="true">⬡</span>
+          <img src="/logo.png" alt="Plant Nexus Logo" className="logo-img" />
           <span className="brand-wordmark">
             <span className="brand-word-plant">Plant</span>{' '}
             <span className="brand-word-nexus">Nexus</span>

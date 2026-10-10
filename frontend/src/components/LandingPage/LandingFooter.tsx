@@ -9,7 +9,7 @@ export function LandingFooter({ onNavigate }: LandingFooterProps) {
         <div className="landing-footer-grid">
           <div className="footer-brand-col">
             <div className="footer-brand-logo">
-              <span style={{ color: 'var(--color-accent)' }} aria-hidden="true">⬡</span>
+              <img src="/logo.png" alt="Plant Nexus Logo" className="footer-logo-img" />
               <span className="brand-wordmark">
                 <span className="brand-word-plant">Plant</span>{' '}
                 <span className="brand-word-nexus">Nexus</span>
