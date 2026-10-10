@@ -1,10 +1,13 @@
 # PlantNexus project status
 
-Authoritative tracker. Last verified: **2026-10-10 (Milestone 4 session)**. Do not mark work complete from plans alone.
+Authoritative tracker. Last verified: **2026-10-10 (Task 8 / Milestone 7 session)**. Do not mark work complete from plans alone.
 
-**Git:** branch `main` tracking `origin/main` at `51f3bd5` (`feat: complete PlantNexus analytics and AI explanations`). Working tree contains Milestone 4 recovery verification (`backend/src/recovery.js`, `backend/src/recovery.test.js`, updated `server.js` and `server.test.js`, docs).
+**Git:** branch `main` tracking `origin/main` at `d81b4cb` (`feat: add recovery verification dashboard`). Working tree clean.
 
-**Tests this session (executed):** `node --test` → **111 pass / 0 fail** (analytics 50, detector 10, explain 19, recovery 22, HTTP 10 via live Supabase). Prior session report of 85 passing is superseded.
+**Tests this session (executed):**
+- Backend: `node --test` (`npm test`) → **111 pass / 0 fail** (analytics 50, detector 10, explain 19, recovery 22, HTTP 10 via live Supabase).
+- Frontend: `npm run build` (`tsc -b && vite build`) → **Passed with 0 errors** (production assets compiled in `frontend/dist`).
+- Live E2E lifecycle executed: Healthy → Degraded → Analysis & Grounded Evidence → Recovery → Recovery Verification.
 
 ---
 
@@ -198,31 +201,39 @@ Requirements unknown. Do not invent AWS architecture as “done”.
 
 ## Milestone 7 — End-to-end testing and submission
 
-**Status: NOT STARTED.**
+**Status: COMPLETE (2026-10-10, Task 8 session).**
 
 ### Completed
 
-Focused backend `node:test` coverage (66 tests this session). Simulator `--cycles` for short runs.
+- Backend test suite: `node --test` executed → **111 pass / 0 fail** across all 23 suites.
+- Frontend build: `tsc -b && vite build` executed → **Passed with 0 errors** (production assets in `frontend/dist`).
+- Backend daemon & Vite proxy verified: `GET /api/health`, `GET /api/telemetry`, `GET /api/telemetry/analytics`, `POST /api/analyze`, `POST /api/verify-recovery`.
+- Live simulator lifecycle tested end-to-end:
+  - `HEALTHY` scenario: Telemetry ingested; `POST /api/analyze` evaluates `HEALTHY`; `POST /api/verify-recovery` confirms `VERIFIED`.
+  - `DEGRADED` scenario: Machine stress (+42% energy, +12% temp); `POST /api/analyze` flags `CRITICAL` with detailed numeric evidence; `POST /api/verify-recovery` flags `NOT_RECOVERED` (verdict: `DEGRADED`, consecutive: `0`).
+  - `RECOVERY` scenario: Progressive return toward baseline; `POST /api/verify-recovery` evaluates `RECOVERING` (verdict: `PARTIALLY_IMPROVED`, score: `0.53`).
+  - Post-recovery healthy return: `POST /api/verify-recovery` confirms sustained consecutive healthy readings (`VERIFIED`, verdict: `IMPROVED`, consecutive: `4/3`, score: `1.0`).
+- Comprehensive `README.md` updated with architecture, quickstart instructions, API endpoint reference, and step-by-step judge walkthrough.
 
 ### Pending
 
-- Scripted demo: healthy → degraded → analyze → (AI) → recovery → verify → dashboard.
-- Frontend tests; E2E; submission checklist.
-- Commit strategy for uncommitted backend/supabase.
+- Official AWS hackathon eligibility verification (see Milestone 6).
+- Hosted table migration for `intelligence_analysis` and `recovery_verifications` (requires explicit user approval).
 
 ### Blockers
 
-M3–M5 incomplete. M2 persist incomplete on host.
+None for end-to-end local demo. Ephemeral persistence remains until hosted SQL migration is approved.
 
 ---
 
 ## Current milestone and next task
 
-**Current:** Milestones 1–5 are COMPLETE in the working tree. All four frontend tabs (Overview, Telemetry Trends, Analysis & Evidence, Recovery Verification) are fully implemented and verified against real backend API endpoints.
+**Current:** Milestones 1–5 and Milestone 7 are COMPLETE. All four frontend tabs (Overview, Telemetry Trends, Analysis & Evidence, Recovery Verification) are fully integrated, tested, and demo-ready with the factory simulator.
 
 **Exact next task options (pick one):**
 
-1. **Milestone 7 (End-to-End Testing & Demo Script):** Prepare and test scripted end-to-end demo flow (`healthy` → `degraded` → `analyze` → `recovery` → `verify-recovery` → dashboard presentation).
+1. **Milestone 6 (AWS Integration):** Verify official hackathon rules regarding AWS requirements; implement smallest compliant integration (e.g. Bedrock for AI explanation or API Gateway wrapper).
 2. **Ops (approval required):** Apply `20261009194500_create_intelligence_tables.sql` to hosted Supabase, confirming `analysisId` and `verificationId` are non-null on future calls.
+3. **Demo Presentation / Submission Preparation:** Prepare presentation assets, slides, or submission recording.
 
 Do not commit, deploy, or modify hosted Supabase without explicit user approval.
