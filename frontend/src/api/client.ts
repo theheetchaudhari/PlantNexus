@@ -1,4 +1,4 @@
-import type { TelemetryRecord, AnalyticsResponse } from './types';
+import type { TelemetryRecord, AnalyticsResponse, AnalysisResult } from './types';
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
@@ -54,6 +54,33 @@ export async function fetchAnalytics(machineId?: string, limit: number = 1000, s
   const result = await response.json();
   if (!result.success) {
     throw new Error(result.error || 'Failed to fetch analytics');
+  }
+
+  return result.data;
+}
+
+export async function runAnalysis(
+  machineId: string,
+  limit: number = 100,
+  signal?: AbortSignal
+): Promise<AnalysisResult> {
+  const response = await fetch(`${API_BASE}/analyze`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ machineId, limit }),
+    signal,
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`HTTP error! status: ${response.status} - ${errText}`);
+  }
+
+  const result = await response.json();
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to run analysis');
   }
 
   return result.data;
