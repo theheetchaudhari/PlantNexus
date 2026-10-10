@@ -4,6 +4,7 @@ import { TabNavigation } from './components/TabNavigation';
 import type { TabId } from './components/TabNavigation';
 import { Footer } from './components/Footer';
 import { OverviewDashboard } from './components/OverviewDashboard';
+import { TelemetryTrends } from './components/TelemetryTrends';
 import './App.css';
 
 function App() {
@@ -26,6 +27,8 @@ function App() {
       <main className="main-content">
           {activeTab === 'overview' ? (
             <OverviewDashboard machineId="M-017" />
+          ) : activeTab === 'telemetry' ? (
+            <TelemetryTrends machineId="M-017" />
           ) : (
             <div className="tab-panel-placeholder" role="tabpanel" id={`panel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
               <h2>{getTabLabel(activeTab)} Content</h2>

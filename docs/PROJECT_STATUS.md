@@ -145,7 +145,7 @@ None for verification API. Persistence is degraded (`verificationId: null`) unti
 
 ## Milestone 5 — React dashboard integration
 
-**Status: IN PROGRESS (Task 4 Complete).**
+**Status: IN PROGRESS (Task 5 Complete).**
 
 ### Completed
 
@@ -154,19 +154,20 @@ None for verification API. Persistence is degraded (`verificationId: null`) unti
 - Task 2: Application Shell (TopBar, Tabs, Footer), Vite proxy, and `useApiHealth` polling.
 - Task 3: API Client and Telemetry Hooks (`fetchTelemetry`, `fetchAnalytics`, TypeScript types, `useTelemetry`, `useAnalytics`). Build successfully verified.
 - Task 4: Real-Data Overview Dashboard (`OverviewDashboard`, `MetricCard`, `ConditionBadge`). Real analytics metrics displayed including Energy, Production, Waste, Temperature, and Efficiency with proper data state handling (loading, empty, stale, normal).
+- Task 5: Telemetry Trends & Charts (`TelemetryTrends`, `TelemetryChartCard`). Implemented responsive Recharts time-series charts for Energy (kW), Production Rate (units/hr), Waste (kg), and Temperature (°C). Features chronological sorting, record-window limit selector (25, 50, 100, 200 readings), metric filtering, mini stats strip (Min, Avg, Max, Latest), honest loading/error/empty/stale states, and data freshness tracking for `M-017`. Verified with `npm run build` (passed: 0 errors).
 
 ### Pending
 
-- Client for analyze (and later recovery).
-- Charts / analysis and evidence panels display.
+- Task 6: Analysis & Evidence tab (`POST /api/analyze`) displaying deterministic anomaly detection, relative thresholds, and grounded AI explanation.
+- Task 7: Recovery Verification tab (`POST /api/verify-recovery`) showing sustained consecutive healthy readings and before/after verification verdicts.
 
 ### Dependencies
 
-Stable backend routes (M1–M2 exist).
+Stable backend routes (M1–M4 exist).
 
 ### Blockers
 
-None to start UI against local API.
+None to continue UI implementation.
 
 ---
 
@@ -216,11 +217,11 @@ M3–M5 incomplete. M2 persist incomplete on host.
 
 ## Current milestone and next task
 
-**Current:** Milestones 1–4 complete in working tree. Recovery verification is live with full deterministic test coverage (111 passing tests). DB persistence for intelligence/recovery tables is gracefully handled and pending hosted SQL migration approval.
+**Current:** Milestones 1–4 complete in working tree. Milestone 5 (React Dashboard) is in progress: Tasks 1–5 complete with Overview and Telemetry Trends tabs fully functional against real backend telemetry.
 
 **Exact next task options (pick one):**
 
-1. **Milestone 5 (React dashboard):** Implement frontend dashboard consuming `GET /api/health`, `GET /api/telemetry`, `POST /api/analyze`, and `POST /api/verify-recovery`.
+1. **Milestone 5 — Task 6 (Analysis & Evidence tab):** Implement frontend integration for `POST /api/analyze` showing deterministic anomaly status (HEALTHY, DEGRADED, CRITICAL), relative baseline metric deviations, and grounded AI explanations with inspection facts.
 2. **Ops (approval required):** Apply `20261009194500_create_intelligence_tables.sql` to hosted Supabase, confirming `analysisId` and `verificationId` are non-null on future calls.
 
 Do not commit, deploy, or modify hosted Supabase without explicit user approval.
