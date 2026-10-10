@@ -13,6 +13,10 @@ const {
   explainAnalysis,
   narrativeIsGrounded,
   resolveLlmConfig,
+  resolveGeminiConfig,
+  fetchStrandsNarrative,
+  DEFAULT_GEMINI_MODEL,
+  SYSTEM_PROMPT,
 } = require("./explain");
 
 function makeRecord(overrides = {}) {
@@ -365,5 +369,213 @@ describe("LLM config, grounding, success, and failure", () => {
     const facts = { observed: 67.5, baseline: 45 };
     assert.equal(narrativeIsGrounded("observed 67.5 vs 45", facts), true);
     assert.equal(narrativeIsGrounded("saves 12 percent", facts), false);
+  });
+});
+
+describe("Strands + Gemini config, seam, and offline scenarios", () => {
+  test("resolveGeminiConfig is null without GEMINI_API_KEY", () => {
+    assert.equal(resolveGeminiConfig({}), null);
+    assert.equal(resolveGeminiConfig({ GEMINI_API_KEY: "   " }), null);
+  });
+
+  test("resolveGeminiConfig uses GEMINI_MODEL override", () => {
+    const config = resolveGeminiConfig({
+      GEMINI_API_KEY: "test-key",
+      GEMINI_MODEL: "gemini-2.5-pro",
+    });
+    assert.ok(config);
+    assert.equal(config.apiKey, "test-key");
+    assert.equal(config.modelId, "gemini-2.5-pro");
+  });
+
+  test("resolveGeminiConfig defaults to DEFAULT_GEMINI_MODEL", () => {
+    const config = resolveGeminiConfig({ GEMINI_API_KEY: "test-key" });
+    assert.ok(config);
+    assert.equal(config.modelId, DEFAULT_GEMINI_MODEL);
+  });
+
+  test("missing GEMINI_API_KEY uses fallback and does not call agentFactory", async () => {
+    let called = false;
+    const detection = detectAnomalies(makeHealthySeries());
+    const result = await explainAnalysis(detection, {
+      env: {},
+      agentFactory: async () => {
+        called = true;
+        throw new Error("should not be called");
+      },
+    });
+    assert.equal(called, false);
+    assert.equal(result.source, "fallback");
+    assert.equal(result.error, null);
+    assert.equal(result.condition, detection.condition);
+  });
+
+  test("agentFactory failure keeps detection fields and fallback narrative", async () => {
+    const records = makeHealthySeries();
+    records[0] = makeRecord({ id: 999, energy_kw: 45 * 1.5 });
+    const detection = detectAnomalies(records);
+    const result = await explainAnalysis(detection, {
+      env: { GEMINI_API_KEY: "test-key" },
+      agentFactory: async () => {
+        throw new Error("quota exceeded");
+      },
+    });
+    assert.equal(result.source, "fallback");
+    assert.equal(result.condition, "CRITICAL");
+    assert.match(result.error, /quota exceeded/);
+    assert.ok(result.narrative.includes("67.5"));
+  });
+
+  test("grounded Strands narrative is accepted without changing condition", async () => {
+    const records = makeHealthySeries();
+    records[0] = makeRecord({ id: 999, energy_kw: 45 * 1.5 });
+    const detection = detectAnomalies(records);
+    const fallback = buildFallbackExplanation(detection);
+    const llmNarrative =
+      `Machine M-017 is CRITICAL. energy observed ${fallback.issues[0].observed} ` +
+      `vs baseline ${fallback.issues[0].baseline} kW.`;
+
+    const result = await explainAnalysis(detection, {
+      env: { GEMINI_API_KEY: "test-key", GEMINI_MODEL: DEFAULT_GEMINI_MODEL },
+      agentFactory: async () => JSON.stringify({ narrative: llmNarrative }),
+    });
+    assert.equal(result.source, "llm");
+    assert.equal(result.error, null);
+    assert.equal(result.condition, detection.condition);
+    assert.equal(result.narrative, llmNarrative);
+    assert.deepEqual(result.issues, fallback.issues);
+  });
+
+  test("ungrounded Strands numbers are rejected", async () => {
+    const detection = detectAnomalies(makeHealthySeries());
+    const result = await explainAnalysis(detection, {
+      env: { GEMINI_API_KEY: "test-key" },
+      agentFactory: async () =>
+        JSON.stringify({
+          narrative: "This fault will save 99999 dollars after recovery.",
+        }),
+    });
+    assert.equal(result.source, "fallback");
+    assert.match(result.error, /not present in evidence/);
+    assert.ok(!result.narrative.includes("99999"));
+  });
+
+  test("fetchStrandsNarrative extracts narrative from JSON factory output", async () => {
+    const facts = { condition: "HEALTHY", issues: [], measurements: [] };
+    const config = { apiKey: "test-key", modelId: DEFAULT_GEMINI_MODEL };
+    const narrative = await fetchStrandsNarrative(
+      facts,
+      config,
+      async () => JSON.stringify({ narrative: "Machine is healthy." })
+    );
+    assert.equal(narrative, "Machine is healthy.");
+  });
+
+  test("fetchStrandsNarrative throws on empty factory response", async () => {
+    const facts = { condition: "HEALTHY" };
+    const config = { apiKey: "test-key", modelId: DEFAULT_GEMINI_MODEL };
+    await assert.rejects(
+      fetchStrandsNarrative(facts, config, async () => ""),
+      /empty content/
+    );
+  });
+
+  test("GEMINI_API_KEY takes priority over OPENAI_API_KEY", async () => {
+    let openaiCalled = false;
+    let geminiFailed = false;
+    const detection = detectAnomalies(makeHealthySeries());
+    const result = await explainAnalysis(detection, {
+      env: { GEMINI_API_KEY: "gkey", OPENAI_API_KEY: "okey" },
+      agentFactory: async () => {
+        geminiFailed = true;
+        throw new Error("gemini path hit");
+      },
+      fetchImpl: async () => {
+        openaiCalled = true;
+        return { ok: true, json: async () => ({}) };
+      },
+    });
+    assert.equal(geminiFailed, true, "Gemini agentFactory must be called");
+    assert.equal(openaiCalled, false, "OpenAI fetchImpl must not be called when GEMINI_API_KEY is set");
+    assert.equal(result.source, "fallback");
+    assert.match(result.error, /Strands provider failed/);
+  });
+
+  test("prompt requires verbatim numeric values without rounding or invented baselines", () => {
+    assert.match(SYSTEM_PROMPT, /VERBATIM/i);
+    assert.match(SYSTEM_PROMPT, /without rounding/i);
+    assert.match(SYSTEM_PROMPT, /exactEvidence/i);
+  });
+
+  test("offline: exact multi-decimal evidence values pass grounding and use llm source", async () => {
+    const records = makeHealthySeries();
+    const detection = detectAnomalies(records);
+    const fallback = buildFallbackExplanation(detection);
+    const energy = fallback.measurements.find((m) => m.metric === "energy");
+    const waste = fallback.measurements.find((m) => m.metric === "waste");
+
+    const exactNarrative =
+      `Machine M-017 is HEALTHY. Energy observed ${energy.observed} kW vs baseline ` +
+      `${energy.baseline} kW, and waste observed ${waste.observed} kg vs baseline ${waste.baseline} kg.`;
+
+    const result = await explainAnalysis(detection, {
+      env: { GEMINI_API_KEY: "test-key", GEMINI_MODEL: DEFAULT_GEMINI_MODEL },
+      agentFactory: async () => JSON.stringify({ narrative: exactNarrative }),
+    });
+
+    assert.equal(result.source, "llm");
+    assert.equal(result.error, null);
+    assert.equal(result.narrative, exactNarrative);
+    assert.equal(result.condition, "HEALTHY");
+  });
+
+  test("offline: rounded evidence values are rejected by grounding and trigger fallback", async () => {
+    const records = makeHealthySeries();
+    const detection = detectAnomalies(records);
+    const fallback = buildFallbackExplanation(detection);
+    const energy = fallback.measurements.find((m) => m.metric === "energy");
+
+    // Baseline has multi-decimal digits; create a rounded version
+    const roundedBaseline = Number(energy.baseline.toFixed(1));
+    assert.notEqual(roundedBaseline, energy.baseline, "must differ from exact baseline");
+
+    const roundedNarrative =
+      `Machine M-017 is HEALTHY. Energy observed ${energy.observed} kW vs baseline ${roundedBaseline} kW.`;
+
+    const result = await explainAnalysis(detection, {
+      env: { GEMINI_API_KEY: "test-key", GEMINI_MODEL: DEFAULT_GEMINI_MODEL },
+      agentFactory: async () => JSON.stringify({ narrative: roundedNarrative }),
+    });
+
+    assert.equal(result.source, "fallback");
+    assert.match(result.error, /not present in evidence/);
+    assert.notEqual(result.narrative, roundedNarrative);
+  });
+
+  test("offline: invented metric or dollar values are rejected by grounding", async () => {
+    const records = makeHealthySeries();
+    const detection = detectAnomalies(records);
+    const inventedNarrative =
+      "Machine M-017 is HEALTHY with vibration 0.05 mm/s and pressure 101.3 kPa saving 1500 dollars.";
+
+    const result = await explainAnalysis(detection, {
+      env: { GEMINI_API_KEY: "test-key", GEMINI_MODEL: DEFAULT_GEMINI_MODEL },
+      agentFactory: async () => JSON.stringify({ narrative: inventedNarrative }),
+    });
+
+    assert.equal(result.source, "fallback");
+    assert.match(result.error, /not present in evidence/);
+    assert.ok(!result.narrative.includes("1500"));
+  });
+
+  test("offline: fetchStrandsNarrative unwraps markdown json code fences", async () => {
+    const facts = { condition: "HEALTHY" };
+    const config = { apiKey: "test-key", modelId: DEFAULT_GEMINI_MODEL };
+    const narrative = await fetchStrandsNarrative(
+      facts,
+      config,
+      async () => "```json\n{\n  \"narrative\": \"Clean extracted narrative.\"\n}\n```"
+    );
+    assert.equal(narrative, "Clean extracted narrative.");
   });
 });

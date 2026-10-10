@@ -7,10 +7,12 @@
  * analysis object (the /api/analyze payload shape) and never invents
  * measurements, causes, savings, or recovery outcomes.
  *
- * Optional LLM: OpenAI-compatible Chat Completions via fetch when
- * OPENAI_API_KEY is set. Narrative only; structured fields always come
- * from validated inspection tools. Missing key or provider failure uses
- * the same schema with a deterministic template narrative.
+ * Optional LLM providers (in order of preference):
+ *   1. Strands Agents + Google Gemini when GEMINI_API_KEY is set.
+ *   2. OpenAI-compatible Chat Completions via fetch when OPENAI_API_KEY is set.
+ * Narrative only; structured fields always come from validated inspection tools.
+ * Missing key or provider failure uses the same schema with a deterministic
+ * template narrative.
  */
 
 const { toFiniteNumber } = require("./analytics");
@@ -19,13 +21,21 @@ const CONDITIONS = new Set(["HEALTHY", "DEGRADED", "CRITICAL"]);
 const EVIDENCE_SEVERITIES = new Set(["none", "degraded", "critical"]);
 const DEFAULT_OPENAI_BASE_URL = "https://api.openai.com/v1";
 const DEFAULT_OPENAI_MODEL = "gpt-4o-mini";
+const DEFAULT_GEMINI_MODEL = "gemini-3.8-flash";
 
 const SYSTEM_PROMPT =
-  "You explain PlantNexus machine-condition evidence for operators. " +
+  "You explain PlantNexus machine-condition evidence for operators.\n" +
   "Use only the JSON facts provided. Do not invent sensors, measurements, " +
   "fault causes, dollar savings, or recovery results. Do not recommend " +
-  "controlling industrial equipment. Reply with JSON: {\"narrative\":\"...\"} " +
-  "as 2 to 4 sentences that cite the supplied numbers and units.";
+  "controlling industrial equipment.\n\n" +
+  "CRITICAL NUMERIC GROUNDING RULES:\n" +
+  "1. Quote numeric values VERBATIM from the supplied evidence (exactEvidence or measurements) " +
+  "without rounding, truncating, or approximating. For example, if a baseline is 54.1051, " +
+  "you MUST cite 54.1051 (do NOT write 54.11 or 54.1); if 1.24245, cite 1.24245 (do NOT write 1.24).\n" +
+  "2. Do NOT compute, derive, or invent new numbers, percentages, or baseline thresholds.\n" +
+  "3. Only cite numbers that appear directly in the provided evidence JSON. Any rounded or " +
+  "unlisted number fails deterministic safety verification.\n\n" +
+  "Reply strictly with JSON: {\"narrative\":\"...\"} as 2 to 4 sentences that cite the exact supplied numbers and units.";
 
 /**
  * @param {*} analysis
@@ -380,9 +390,20 @@ function buildFallbackExplanation(analysis) {
 }
 
 function factsPayload(explanation) {
+  const exactEvidence = Array.isArray(explanation.measurements)
+    ? explanation.measurements.map((item) => ({
+        metric: item.metric,
+        unit: item.unit,
+        observed: item.observed,
+        baseline: item.baseline,
+        severity: item.severity,
+      }))
+    : [];
+
   return {
     condition: explanation.condition,
     severity: explanation.severity,
+    exactEvidence,
     issues: explanation.issues,
     measurements: explanation.measurements,
     recommendedActions: explanation.recommendedActions,
@@ -460,9 +481,15 @@ async function fetchLlmNarrative(facts, config, fetchImpl) {
     throw new Error("LLM returned empty content");
   }
 
+  let cleaned = content.trim();
+  const fenceMatch = cleaned.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  if (fenceMatch) {
+    cleaned = fenceMatch[1].trim();
+  }
+
   let parsed;
   try {
-    parsed = JSON.parse(content);
+    parsed = JSON.parse(cleaned);
   } catch {
     throw new Error("LLM content was not JSON");
   }
@@ -475,16 +502,211 @@ async function fetchLlmNarrative(facts, config, fetchImpl) {
 }
 
 /**
+ * Resolve Gemini (Strands) config from env. Returns null when key is absent.
+ * @param {object} env
+ * @returns {{ apiKey: string, modelId: string }|null}
+ */
+function resolveGeminiConfig(env) {
+  const source = env && typeof env === "object" ? env : {};
+  const apiKey =
+    typeof source.GEMINI_API_KEY === "string" && source.GEMINI_API_KEY.trim()
+      ? source.GEMINI_API_KEY.trim()
+      : "";
+  if (!apiKey) return null;
+
+  const modelId =
+    typeof source.GEMINI_MODEL === "string" && source.GEMINI_MODEL.trim()
+      ? source.GEMINI_MODEL.trim()
+      : DEFAULT_GEMINI_MODEL;
+
+  return { apiKey, modelId };
+}
+
+/**
+ * Default agentFactory: uses the Strands Agent abstraction with GoogleModel.
+ *
+ * The five inspection functions are registered as FunctionTool instances so
+ * the agent can invoke them during its reasoning loop. The analysis facts are
+ * closed over via the userContent argument, which the agent receives as its
+ * initial user message.
+ *
+ * Dynamic import keeps the CommonJS backend compatible with the ESM SDK.
+ *
+ * @param {string} systemPrompt
+ * @param {string} userContent  JSON-serialised facts payload
+ * @param {{ apiKey: string, modelId: string }} config
+ * @returns {Promise<string>}
+ */
+async function defaultStrandsAgentFactory(systemPrompt, userContent, config) {
+  // Dynamic imports — keep ESM SDK compatible with CommonJS backend.
+  const { GoogleModel } = await import("@strands-agents/sdk/models/google");
+  const { Agent, FunctionTool } = await import("@strands-agents/sdk");
+
+  const model = new GoogleModel({
+    apiKey: config.apiKey,
+    modelId: config.modelId,
+    params: { temperature: 0 },
+  });
+
+  // Parse the facts payload once so tools can operate on it without re-parsing.
+  let parsedFacts;
+  try {
+    parsedFacts = JSON.parse(userContent);
+  } catch {
+    parsedFacts = {};
+  }
+
+  // Register the five inspection functions as Strands agent tools.
+  // Each tool receives the parsed analysis evidence (already embedded in
+  // parsedFacts) so the agent can inspect specific aspects independently.
+  const inspectionTools = [
+    new FunctionTool({
+      name: "inspect_condition",
+      description:
+        "Inspect the machine condition, severity, and confidence from the " +
+        "analysis evidence. Returns condition (HEALTHY/DEGRADED/CRITICAL), " +
+        "severity, and confidence.",
+      callback: () => JSON.stringify(inspectCondition(parsedFacts)),
+    }),
+    new FunctionTool({
+      name: "inspect_measurements",
+      description:
+        "Return all normalised measurement items from the evidence array. " +
+        "Each item has metric, observed, baseline, difference, unit, " +
+        "direction, severity, deviationPct, and adversePct.",
+      callback: () => JSON.stringify(inspectMeasurements(parsedFacts)),
+    }),
+    new FunctionTool({
+      name: "inspect_issues",
+      description:
+        "Return only adverse (non-none severity) measurement items ranked " +
+        "critical-first then by adversePct descending. Use this to identify " +
+        "the primary driver of a DEGRADED or CRITICAL condition.",
+      callback: () => JSON.stringify(inspectIssues(parsedFacts)),
+    }),
+    new FunctionTool({
+      name: "inspect_recommendations",
+      description:
+        "Return the detector-supplied recommended actions as an array of " +
+        "strings. Do not invent actions beyond what is returned here.",
+      callback: () => JSON.stringify(inspectRecommendations(parsedFacts)),
+    }),
+    new FunctionTool({
+      name: "inspect_uncertainty",
+      description:
+        "Return the data-quality status and any quality warnings. When " +
+        "status is insufficient_data or empty, do not infer faults or " +
+        "recovery; note the limitation in your narrative.",
+      callback: () => JSON.stringify(inspectUncertainty(parsedFacts)),
+    }),
+  ];
+
+  const agent = new Agent({
+    model,
+    systemPrompt,
+    tools: inspectionTools,
+  });
+
+  const result = await agent.invoke(userContent);
+  return result.toString();
+}
+
+/**
+ * Obtain a narrative from Strands + Gemini.
+ * The agentFactory is injected for testability — tests pass a mock that
+ * returns controlled text without calling the real API.
+ *
+ * @param {object} facts
+ * @param {{ apiKey: string, modelId: string }} config
+ * @param {Function} agentFactory
+ * @returns {Promise<string>}
+ */
+async function fetchStrandsNarrative(facts, config, agentFactory) {
+  const rawText = await agentFactory(
+    SYSTEM_PROMPT,
+    JSON.stringify(facts),
+    config
+  );
+
+  if (typeof rawText !== "string" || !rawText.trim()) {
+    throw new Error("Strands model returned empty content");
+  }
+
+  // The model is instructed to reply with JSON {"narrative":"..."}
+  // but may return markdown fences (```json ... ```) or plain text.
+  let cleaned = rawText.trim();
+  const fenceMatch = cleaned.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  if (fenceMatch) {
+    cleaned = fenceMatch[1].trim();
+  }
+
+  let narrative;
+  try {
+    const parsed = JSON.parse(cleaned);
+    if (typeof parsed?.narrative === "string" && parsed.narrative.trim()) {
+      narrative = parsed.narrative.trim();
+    } else {
+      throw new Error("Strands JSON missing narrative string");
+    }
+  } catch (parseErr) {
+    // If the model returned plain text (not JSON), use it directly only when
+    // narrativeIsGrounded will accept it; otherwise propagate the parse error.
+    if (parseErr.message === "Strands JSON missing narrative string") {
+      throw parseErr;
+    }
+    // rawText is not JSON — treat the full text as the narrative candidate.
+    narrative = cleaned;
+  }
+
+  return narrative;
+}
+
+/**
  * Explain an /api/analyze-shaped result.
  *
  * @param {object} analysis
- * @param {{ env?: NodeJS.ProcessEnv, fetchImpl?: typeof fetch }} [options]
+ * @param {{
+ *   env?: object,
+ *   fetchImpl?: Function,
+ *   agentFactory?: Function
+ * }} [options]
  * @returns {Promise<object>}
  */
 async function explainAnalysis(analysis, options = {}) {
   const fallback = buildFallbackExplanation(analysis);
   const env = options.env || process.env;
   const fetchImpl = options.fetchImpl || globalThis.fetch;
+
+  // --- Strands + Gemini path (preferred) ---
+  const geminiConfig = resolveGeminiConfig(env);
+  if (geminiConfig) {
+    const agentFactory = options.agentFactory || defaultStrandsAgentFactory;
+    try {
+      const facts = factsPayload(fallback);
+      const narrative = await fetchStrandsNarrative(facts, geminiConfig, agentFactory);
+      if (!narrativeIsGrounded(narrative, facts)) {
+        return {
+          ...fallback,
+          error:
+            "Strands narrative contained numbers not present in evidence; used fallback narrative",
+        };
+      }
+      return {
+        ...fallback,
+        narrative,
+        source: "llm",
+        error: null,
+      };
+    } catch (err) {
+      const message = err && err.message ? err.message : "unknown provider error";
+      return {
+        ...fallback,
+        error: `Strands provider failed (${message}); used fallback narrative`,
+      };
+    }
+  }
+
+  // --- OpenAI-compatible fallback path ---
   const config = resolveLlmConfig(env);
 
   if (!config) {
@@ -533,6 +755,10 @@ module.exports = {
   explainAnalysis,
   narrativeIsGrounded,
   resolveLlmConfig,
+  resolveGeminiConfig,
+  fetchStrandsNarrative,
   DEFAULT_OPENAI_MODEL,
   DEFAULT_OPENAI_BASE_URL,
+  DEFAULT_GEMINI_MODEL,
+  SYSTEM_PROMPT,
 };
