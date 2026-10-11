@@ -383,6 +383,10 @@
   to { transform: rotate(360deg); }
 }
 
+.spin {
+  animation: spin 1s linear infinite;
+}
+
 .retry-button {
   background-color: var(--color-primary);
   color: white;
@@ -406,6 +410,10 @@
 }
 
 .action-button-subtle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   font-family: var(--font-sans);
   color: var(--color-primary);
   background-color: var(--color-primary-lighter);
@@ -667,6 +675,10 @@
 }
 
 .action-button-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   font-family: var(--font-sans);
   font-weight: var(--weight-semibold);
   font-size: var(--text-sm);
@@ -992,6 +1004,9 @@
 }
 
 .source-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   padding: var(--space-1) var(--space-3);
@@ -1023,6 +1038,9 @@
 }
 
 .explanation-notice {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   color: var(--color-degraded);
   background-color: var(--color-degraded-bg);
   padding: var(--space-2) var(--space-3);

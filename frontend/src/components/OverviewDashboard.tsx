@@ -1,3 +1,4 @@
+import { Bot, Cpu, Zap, ShieldCheck, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { useAnalysis } from '../hooks/useAnalysis';
 import type { UseAnalysisResult } from '../hooks/useAnalysis';
@@ -315,13 +316,22 @@ export function OverviewDashboard({
                             : 'source-fallback'
                         }`}
                       >
-                        {fullAnalysis.explanation?.source === 'llm'
-                          ? '🤖 Verified LLM Narrative'
-                          : '⚙️ Deterministic Narrative'}
+                        {fullAnalysis.explanation?.source === 'llm' ? (
+                          <>
+                            <Bot size={12} />
+                            <span>Verified LLM Narrative</span>
+                          </>
+                        ) : (
+                          <>
+                            <Cpu size={12} />
+                            <span>Deterministic Narrative</span>
+                          </>
+                        )}
                       </span>
                     ) : (
                       <span className="source-badge source-fallback text-xs">
-                        ⚙️ Deterministic Detection
+                        <Cpu size={12} />
+                        <span>Deterministic Detection</span>
                       </span>
                     )}
                     <span className="confidence-pill text-xs">
@@ -341,7 +351,17 @@ export function OverviewDashboard({
                 className="action-button-primary text-xs"
                 title="Run comprehensive analysis with grounded AI reasoning"
               >
-                {analysis.loading ? 'Evaluating...' : '⚡ Run Analysis'}
+                {analysis.loading ? (
+                  <>
+                    <Loader2 size={13} className="spin" />
+                    <span>Evaluating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Zap size={13} />
+                    <span>Run Analysis</span>
+                  </>
+                )}
               </button>
               {onNavigateTab && (
                 <button
@@ -489,7 +509,17 @@ export function OverviewDashboard({
                 className="action-button-primary text-xs"
                 title="Verify sustained consecutive healthy telemetry streak"
               >
-                {recovery.loading ? 'Evaluating...' : '⚡ Verify Recovery'}
+                {recovery.loading ? (
+                  <>
+                    <Loader2 size={13} className="spin" />
+                    <span>Evaluating...</span>
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck size={13} />
+                    <span>Verify Recovery</span>
+                  </>
+                )}
               </button>
               {onNavigateTab && (
                 <button
@@ -528,8 +558,9 @@ export function OverviewDashboard({
                     <div className="streak-status-text text-xs">
                       {recoveryResult.consecutiveHealthy >=
                       recoveryResult.requiredConsecutiveHealthy ? (
-                        <span className="streak-satisfied-text">
-                          ✓ Required healthy streak achieved
+                        <span className="streak-satisfied-text" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <CheckCircle2 size={13} />
+                          <span>Required healthy streak achieved</span>
                         </span>
                       ) : (
                         <span className="streak-pending-text">
@@ -569,10 +600,13 @@ export function OverviewDashboard({
                 )}
 
                 {/* Honest Integrity Notice */}
-                <div className="recovery-integrity-notice">
-                  ⚠️ <strong>Integrity check:</strong> Recovery requires verified consecutive
-                  healthy readings within baseline tolerances. Active telemetry arrival does not
-                  imply equipment recovery.
+                <div className="recovery-integrity-notice" style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                  <AlertTriangle size={15} style={{ flexShrink: 0, marginTop: '2px', color: '#D97706' }} />
+                  <span>
+                    <strong>Integrity check:</strong> Recovery requires verified consecutive
+                    healthy readings within baseline tolerances. Active telemetry arrival does not
+                    imply equipment recovery.
+                  </span>
                 </div>
 
                 <div
@@ -596,8 +630,9 @@ export function OverviewDashboard({
                   requires a sustained sequence of consecutive healthy readings before certifying
                   equipment recovery.
                 </p>
-                <div className="recovery-integrity-notice" style={{ width: '100%', textAlign: 'left' }}>
-                  ⚠️ Telemetry arrival alone does not certify recovery.
+                <div className="recovery-integrity-notice" style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <AlertTriangle size={15} style={{ flexShrink: 0, color: '#D97706' }} />
+                  <span>Telemetry arrival alone does not certify recovery.</span>
                 </div>
                 <button
                   onClick={() => recovery.execute()}

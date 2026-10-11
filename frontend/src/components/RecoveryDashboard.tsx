@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ShieldCheck, CheckCircle2, Loader2 } from 'lucide-react';
 import { useRecoveryVerification } from '../hooks/useRecoveryVerification';
 import type { UseRecoveryVerificationResult } from '../hooks/useRecoveryVerification';
 import type {
@@ -125,7 +126,17 @@ export function RecoveryDashboard({ machineId, recoveryState }: RecoveryDashboar
             className="action-button-primary"
             disabled={loading}
           >
-            {loading ? 'Evaluating...' : '⚡ Verify Recovery'}
+            {loading ? (
+              <>
+                <Loader2 size={14} className="spin" />
+                <span>Evaluating...</span>
+              </>
+            ) : (
+              <>
+                <ShieldCheck size={14} />
+                <span>Verify Recovery</span>
+              </>
+            )}
           </button>
         </div>
       </header>
@@ -146,7 +157,9 @@ export function RecoveryDashboard({ machineId, recoveryState }: RecoveryDashboar
       {/* Initial Idle State */}
       {!data && !loading && !error && (
         <div className="analysis-idle-card">
-          <div className="idle-icon">🛡️</div>
+          <div className="idle-icon">
+            <ShieldCheck size={44} strokeWidth={1.75} />
+          </div>
           <h3>Verify Equipment Recovery</h3>
           <p>
             Recovery verification tests recent machine telemetry against healthy baseline
@@ -228,8 +241,9 @@ export function RecoveryDashboard({ machineId, recoveryState }: RecoveryDashboar
 
                 <div className="streak-status-text text-sm">
                   {data.consecutiveHealthy >= data.requiredConsecutiveHealthy ? (
-                    <span className="streak-satisfied-text">
-                      ✓ Minimum required healthy sequence met
+                    <span className="streak-satisfied-text" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <CheckCircle2 size={15} />
+                      <span>Minimum required healthy sequence met</span>
                     </span>
                   ) : (
                     <span className="streak-pending-text">

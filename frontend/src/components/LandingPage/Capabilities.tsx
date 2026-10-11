@@ -1,7 +1,17 @@
+import type { ReactNode } from 'react';
+import { TrendingUp, Search, ShieldCheck, Check } from 'lucide-react';
+
+interface CapabilityItem {
+  icon: ReactNode;
+  title: string;
+  desc: string;
+  features: string[];
+}
+
 export function Capabilities() {
-  const capabilities = [
+  const capabilities: CapabilityItem[] = [
     {
-      icon: '📈',
+      icon: <TrendingUp size={24} strokeWidth={2} />,
       title: 'Telemetry Trends',
       desc: 'Real-time multi-metric streaming and interactive time-series exploration across power, throughput, thermal, and scrap sensors.',
       features: [
@@ -12,7 +22,7 @@ export function Capabilities() {
       ],
     },
     {
-      icon: '🔍',
+      icon: <Search size={24} strokeWidth={2} />,
       title: 'Evidence-Based Anomaly Analysis',
       desc: 'Deterministic rule evaluation paired with strictly grounded AI explanations that cite real physical sensor data.',
       features: [
@@ -23,7 +33,7 @@ export function Capabilities() {
       ],
     },
     {
-      icon: '🛡',
+      icon: <ShieldCheck size={24} strokeWidth={2} />,
       title: 'Recovery Verification',
       desc: 'Closed-loop mathematical verification validating that operator maintenance actions physically restored equipment to baseline.',
       features: [
@@ -60,7 +70,9 @@ export function Capabilities() {
               <div className="capability-feature-list">
                 {cap.features.map((feat) => (
                   <div key={feat} className="capability-feature-item">
-                    <span className="feature-check" aria-hidden="true">&#10003;</span>
+                    <span className="feature-check" aria-hidden="true">
+                      <Check size={14} strokeWidth={2.5} />
+                    </span>
                     <span>{feat}</span>
                   </div>
                 ))}

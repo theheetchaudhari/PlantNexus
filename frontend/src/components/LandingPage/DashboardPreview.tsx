@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Hexagon } from 'lucide-react';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -65,8 +66,10 @@ export function DashboardPreview({ onNavigate }: DashboardPreviewProps) {
               <span className="window-dot yellow"></span>
               <span className="window-dot green"></span>
             </div>
-            <div className="window-title">
-              <span>⬡ Plant Nexus UI</span>
+            <div className="window-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <Hexagon size={13} /> Plant Nexus UI
+              </span>
               <span>&mdash;</span>
               <span>M-017 (Illustrative CNC Milling Center)</span>
             </div>

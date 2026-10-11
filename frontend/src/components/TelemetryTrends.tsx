@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { RefreshCw } from 'lucide-react';
 import { useTelemetry } from '../hooks/useTelemetry';
 import { TelemetryChartCard } from './TelemetryChartCard';
 import type { ChartDataPoint } from './TelemetryChartCard';
@@ -177,7 +178,8 @@ export function TelemetryTrends({ machineId }: TelemetryTrendsProps) {
             disabled={isRefreshing}
             title="Refresh telemetry"
           >
-            {isRefreshing ? 'Refreshing...' : '↻ Refresh'}
+            <RefreshCw size={12} className={isRefreshing ? 'spin' : ''} />
+            <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
           </button>
         </div>
       </header>

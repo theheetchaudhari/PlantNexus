@@ -1,8 +1,19 @@
+import type { ReactNode } from 'react';
+import { Zap, Cog, Trash2 } from 'lucide-react';
+
+interface ProblemSolutionItem {
+  type: string;
+  icon: ReactNode;
+  title: string;
+  problem: string;
+  solution: string;
+}
+
 export function ProblemSolution() {
-  const items = [
+  const items: ProblemSolutionItem[] = [
     {
       type: 'energy',
-      icon: '⚡',
+      icon: <Zap size={22} strokeWidth={2} />,
       title: 'Excessive Energy Consumption',
       problem:
         'Motor friction, thermal drift, and uncalibrated compressors draw excessive kW. Static threshold meters miss dynamic power drift, resulting in utility demand penalties and wasted power.',
@@ -11,7 +22,7 @@ export function ProblemSolution() {
     },
     {
       type: 'production',
-      icon: '⚙',
+      icon: <Cog size={22} strokeWidth={2} />,
       title: 'Production Inefficiencies & Downtime',
       problem:
         'Equipment rarely fails instantly—it degrades silently over operating hours. Operators often discover issues only after a machine halts or runs below target throughput.',
@@ -20,7 +31,7 @@ export function ProblemSolution() {
     },
     {
       type: 'waste',
-      icon: '🗑',
+      icon: <Trash2 size={22} strokeWidth={2} />,
       title: 'Industrial Waste & Scrap Spikes',
       problem:
         'Operating machines outside thermal or mechanical tolerances creates off-spec parts and scrap that are often caught hours later during batch quality inspections.',

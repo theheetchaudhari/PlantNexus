@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Zap, Search, Bot, Cpu, Info, Loader2 } from 'lucide-react';
 import { useAnalysis } from '../hooks/useAnalysis';
 import type { UseAnalysisResult } from '../hooks/useAnalysis';
 import { ConditionBadge } from './ConditionBadge';
@@ -81,7 +82,17 @@ export function AnalysisDashboard({ machineId, analysisState }: AnalysisDashboar
             className="action-button-primary"
             disabled={loading}
           >
-            {loading ? 'Evaluating Telemetry...' : '⚡ Run Analysis'}
+            {loading ? (
+              <>
+                <Loader2 size={14} className="spin" />
+                <span>Evaluating Telemetry...</span>
+              </>
+            ) : (
+              <>
+                <Zap size={14} />
+                <span>Run Analysis</span>
+              </>
+            )}
           </button>
         </div>
       </header>
@@ -102,7 +113,9 @@ export function AnalysisDashboard({ machineId, analysisState }: AnalysisDashboar
       {/* Initial Idle State */}
       {!data && !loading && !error && (
         <div className="analysis-idle-card">
-          <div className="idle-icon">🔍</div>
+          <div className="idle-icon">
+            <Search size={44} strokeWidth={1.75} />
+          </div>
           <h3>Ready for Anomaly Detection</h3>
           <p>
             Evaluate real historical telemetry for machine <strong>{machineId}</strong> against
@@ -239,9 +252,17 @@ export function AnalysisDashboard({ machineId, analysisState }: AnalysisDashboar
                         data.explanation.source === 'llm' ? 'source-llm' : 'source-fallback'
                       }`}
                     >
-                      {data.explanation.source === 'llm'
-                        ? '🤖 Verified LLM Narrative'
-                        : '⚙️ Deterministic Narrative'}
+                      {data.explanation.source === 'llm' ? (
+                        <>
+                          <Bot size={13} />
+                          <span>Verified LLM Narrative</span>
+                        </>
+                      ) : (
+                        <>
+                          <Cpu size={13} />
+                          <span>Deterministic Narrative</span>
+                        </>
+                      )}
                     </span>
                   ) : (
                     <span className="source-badge source-fallback">
@@ -257,7 +278,8 @@ export function AnalysisDashboard({ machineId, analysisState }: AnalysisDashboar
 
                   {data.explanation.error && (
                     <div className="explanation-notice text-xs">
-                      ℹ️ {data.explanation.error}
+                      <Info size={14} className="notice-icon" />
+                      <span>{data.explanation.error}</span>
                     </div>
                   )}
 

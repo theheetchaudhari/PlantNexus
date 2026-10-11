@@ -585,9 +585,47 @@ None.
 
 ---
 
+## Task 5C — Replace Emojis with Lucide Icons Across UI
+
+**Status: COMPLETE & VERIFIED in working tree (2026-10-11).**
+
+### Changes
+- Installed `lucide-react` in `frontend/` package dependencies.
+- Replaced all raw unicode emojis and symbol characters with corresponding semantic Lucide icons:
+  - **AnalysisDashboard.tsx:** Replaced `⚡` with `<Zap />` / `<Loader2 className="spin" />`, `🔍` with `<Search />`, `🤖` with `<Bot />`, `⚙️` with `<Cpu />`, and `ℹ️` with `<Info />`.
+  - **OverviewDashboard.tsx:** Replaced `🤖` with `<Bot />`, `⚙️` with `<Cpu />`, `⚡` with `<Zap />` / `<ShieldCheck />` / `<Loader2 className="spin" />`, `✓` with `<CheckCircle2 />`, and `⚠️` with `<AlertTriangle />`.
+  - **RecoveryDashboard.tsx:** Replaced `⚡` with `<ShieldCheck />` / `<Loader2 className="spin" />`, `🛡️` with `<ShieldCheck />`, and `✓` with `<CheckCircle2 />`.
+  - **TelemetryTrends.tsx:** Replaced `↻` with `<RefreshCw className={isRefreshing ? 'spin' : ''} />`.
+  - **Capabilities.tsx:** Replaced `📈` with `<TrendingUp />`, `🔍` with `<Search />`, `🛡` with `<ShieldCheck />`, and `&#10003;` with `<Check />`.
+  - **ProblemSolution.tsx:** Replaced `⚡` with `<Zap />`, `⚙` with `<Cog />`, and `🗑` with `<Trash2 />`.
+  - **DashboardPreview.tsx:** Replaced `⬡` with `<Hexagon />`.
+  - **App.css:** Added `.spin` keyframe animation utility and flex alignment for icons in badges and action buttons.
+
+### Tests Run
+- Frontend build (`npm run build` in `frontend/`): **Exit code 0, 0 errors**.
+- Backend regression test suite (`npm test` in `backend/`): **134 pass / 0 fail** across 24 suites.
+
+### Files Changed
+- [`frontend/package.json`](file:///F:/PlantNexus/frontend/package.json)
+- [`frontend/package-lock.json`](file:///F:/PlantNexus/frontend/package-lock.json)
+- [`frontend/src/App.css`](file:///F:/PlantNexus/frontend/src/App.css)
+- [`frontend/src/components/AnalysisDashboard.tsx`](file:///F:/PlantNexus/frontend/src/components/AnalysisDashboard.tsx)
+- [`frontend/src/components/OverviewDashboard.tsx`](file:///F:/PlantNexus/frontend/src/components/OverviewDashboard.tsx)
+- [`frontend/src/components/RecoveryDashboard.tsx`](file:///F:/PlantNexus/frontend/src/components/RecoveryDashboard.tsx)
+- [`frontend/src/components/TelemetryTrends.tsx`](file:///F:/PlantNexus/frontend/src/components/TelemetryTrends.tsx)
+- [`frontend/src/components/LandingPage/Capabilities.tsx`](file:///F:/PlantNexus/frontend/src/components/LandingPage/Capabilities.tsx)
+- [`frontend/src/components/LandingPage/ProblemSolution.tsx`](file:///F:/PlantNexus/frontend/src/components/LandingPage/ProblemSolution.tsx)
+- [`frontend/src/components/LandingPage/DashboardPreview.tsx`](file:///F:/PlantNexus/frontend/src/components/LandingPage/DashboardPreview.tsx)
+- [`docs/PROJECT_STATUS.md`](file:///F:/PlantNexus/docs/PROJECT_STATUS.md)
+
+### Blockers
+None.
+
+---
+
 ## Current milestone and next task
 
-**Current:** Milestones 1–5, 7, 8, 9, Tasks 2A–2C, 3B–3E, 4A, 4B, 5A, and 5B are COMPLETE in working tree.
+**Current:** Milestones 1–5, 7, 8, 9, Tasks 2A–2C, 3B–3E, 4A, 4B, 5A, 5B, and 5C are COMPLETE in working tree.
 
 **Next task:**
 - User review and git commit / push approval, or final packaging for hackathon submission.
