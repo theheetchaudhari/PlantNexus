@@ -5,11 +5,20 @@ import json
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from typing import Any, Dict
 
 from config import DEFAULT_BACKEND_URL, DEFAULT_MACHINE_CONFIG
 from machine import VirtualMachine
+
+
+def normalize_backend_url(url: str) -> str:
+    """Ensure the backend URL includes the telemetry ingestion path if only a base URL is provided."""
+    parsed = urllib.parse.urlparse(url)
+    if parsed.path in ("", "/"):
+        return f"{url.rstrip('/')}/api/telemetry"
+    return url
 
 
 def send_telemetry(url: str, telemetry: Dict[str, Any]) -> None:
@@ -61,6 +70,7 @@ def run_simulator(
     """
     machine = VirtualMachine(DEFAULT_MACHINE_CONFIG, scenario=scenario)
     interval = DEFAULT_MACHINE_CONFIG.poll_interval_seconds
+    backend_url = normalize_backend_url(backend_url)
 
     print(
         f"[PlantNexus Simulator] Initialized machine '{machine.machine_id}' in [{scenario.upper()}] scenario. "
