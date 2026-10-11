@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useRecoveryVerification } from '../hooks/useRecoveryVerification';
+import type { UseRecoveryVerificationResult } from '../hooks/useRecoveryVerification';
 import type {
   VerificationStatus,
   VerificationVerdict,
@@ -8,17 +9,19 @@ import type {
 
 interface RecoveryDashboardProps {
   machineId: string;
+  recoveryState?: UseRecoveryVerificationResult;
 }
 
-export function RecoveryDashboard({ machineId }: RecoveryDashboardProps) {
+export function RecoveryDashboard({ machineId, recoveryState }: RecoveryDashboardProps) {
   const [limit, setLimit] = useState<number>(50);
   const [minConsecutive, setMinConsecutive] = useState<number>(3);
 
-  const { data, loading, error, execute } = useRecoveryVerification(
+  const fallbackRecovery = useRecoveryVerification(
     machineId,
     limit,
     minConsecutive
   );
+  const { data, loading, error, execute } = recoveryState || fallbackRecovery;
 
   const handleVerify = () => {
     execute(limit, minConsecutive);

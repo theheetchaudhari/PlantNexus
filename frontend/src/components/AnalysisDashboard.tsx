@@ -1,16 +1,19 @@
 import { useState } from 'react';
 import { useAnalysis } from '../hooks/useAnalysis';
+import type { UseAnalysisResult } from '../hooks/useAnalysis';
 import { ConditionBadge } from './ConditionBadge';
 import type { ConditionStatus } from './ConditionBadge';
 import type { EvidenceSeverity } from '../api/types';
 
 interface AnalysisDashboardProps {
   machineId: string;
+  analysisState?: UseAnalysisResult;
 }
 
-export function AnalysisDashboard({ machineId }: AnalysisDashboardProps) {
+export function AnalysisDashboard({ machineId, analysisState }: AnalysisDashboardProps) {
   const [limit, setLimit] = useState<number>(100);
-  const { data, loading, error, execute } = useAnalysis(machineId, limit);
+  const fallbackAnalysis = useAnalysis(machineId, limit);
+  const { data, loading, error, execute } = analysisState || fallbackAnalysis;
 
   const handleRunAnalysis = () => {
     execute(limit);

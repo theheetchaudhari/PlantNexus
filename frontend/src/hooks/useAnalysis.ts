@@ -2,18 +2,20 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { runAnalysis } from '../api/client';
 import type { AnalysisResult } from '../api/types';
 
-interface UseAnalysisResult {
+export interface UseAnalysisResult {
   data: AnalysisResult | null;
   loading: boolean;
   error: Error | null;
   execute: (limit?: number) => Promise<void>;
   reset: () => void;
+  lastEvaluatedAt: string | null;
 }
 
 export function useAnalysis(machineId: string, defaultLimit: number = 100): UseAnalysisResult {
   const [data, setData] = useState<AnalysisResult | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
+  const [lastEvaluatedAt, setLastEvaluatedAt] = useState<string | null>(null);
 
   const isRequestInFlight = useRef<boolean>(false);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -38,6 +40,7 @@ export function useAnalysis(machineId: string, defaultLimit: number = 100): UseA
       try {
         const result = await runAnalysis(machineId, limit ?? defaultLimit, controller.signal);
         setData(result);
+        setLastEvaluatedAt(result.timestamp || new Date().toISOString());
         setError(null);
       } catch (err: unknown) {
         if (err instanceof DOMException && err.name === 'AbortError') {
@@ -57,6 +60,7 @@ export function useAnalysis(machineId: string, defaultLimit: number = 100): UseA
       abortControllerRef.current.abort();
     }
     setData(null);
+    setLastEvaluatedAt(null);
     setError(null);
     setLoading(false);
     isRequestInFlight.current = false;
@@ -76,5 +80,6 @@ export function useAnalysis(machineId: string, defaultLimit: number = 100): UseA
     error,
     execute,
     reset,
+    lastEvaluatedAt,
   };
 }

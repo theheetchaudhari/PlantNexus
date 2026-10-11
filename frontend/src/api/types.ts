@@ -49,7 +49,22 @@ export interface Efficiency {
   wasteIntensity?: EfficiencyMetric;
 }
 
+export interface AnomalyDetectionResult {
+  machineId: string | null;
+  telemetryId: string | number | null;
+  condition: AnomalyCondition;
+  confidence: number;
+  summary: string;
+  metrics: AnalysisMetrics;
+  evidence: EvidenceItem[];
+  recommendations: string[];
+  quality: AnalysisQuality;
+  evaluatedAt?: string;
+}
+
 export interface AnalyticsResponse {
+  condition?: AnomalyCondition | null;
+  detection?: AnomalyDetectionResult | null;
   quality: QualityMetrics;
   timeRange: TimeRange | null;
   latestCondition: LatestCondition | null;
@@ -157,6 +172,7 @@ export interface AnalysisResult {
   quality: AnalysisQuality;
   analytics?: AnalyticsResponse;
   explanation?: AnalysisExplanation;
+  timestamp?: string;
 }
 
 export type VerificationStatus =

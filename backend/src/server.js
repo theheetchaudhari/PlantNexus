@@ -185,6 +185,37 @@ app.get("/api/telemetry", async (req, res) => {
   }
 });
 
+/**
+ * Assemble the analytics API response data, combining aggregate metrics
+ * with deterministic condition from anomaly detection.
+ * If data is insufficient for detection, condition is null (not falsely HEALTHY).
+ *
+ * @param {Object[]} records - Telemetry records
+ * @returns {Object}
+ */
+function buildAnalyticsResponse(records) {
+  const safeRecords = Array.isArray(records) ? records : [];
+  const analytics = computeAnalytics(safeRecords);
+  const detection = detectAnomalies(safeRecords);
+
+  const condition =
+    detection.quality?.status === "insufficient_data"
+      ? null
+      : detection.condition;
+
+  return {
+    ...analytics,
+    condition,
+    detection:
+      detection.quality?.status === "insufficient_data"
+        ? null
+        : {
+            ...detection,
+            evaluatedAt: new Date().toISOString(),
+          },
+  };
+}
+
 // Get telemetry analytics
 app.get("/api/telemetry/analytics", async (req, res) => {
   const { machineId, limit = 1000 } = req.query;
@@ -207,9 +238,9 @@ app.get("/api/telemetry/analytics", async (req, res) => {
       return res.status(500).json({ success: false, error: "Database error" });
     }
 
-    const analytics = computeAnalytics(data);
+    const payload = buildAnalyticsResponse(data || []);
 
-    return res.json({ success: true, data: analytics });
+    return res.json({ success: true, data: payload });
   } catch (error) {
     console.error("[Backend] Unexpected analytics error:", error.message);
     return res.status(500).json({ success: false, error: "Server error" });
@@ -316,6 +347,7 @@ app.post("/api/analyze", async (req, res) => {
         quality: detection.quality,
         analytics,
         explanation,
+        timestamp: new Date().toISOString(),
       },
     });
   } catch (error) {
@@ -425,3 +457,4 @@ if (require.main === module) {
 }
 
 module.exports = app;
+module.exports.buildAnalyticsResponse = buildAnalyticsResponse;

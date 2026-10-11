@@ -420,11 +420,142 @@ None. End-to-end evidence-based AI explanation path (Strands Agent + Gemini 3.8 
 
 ---
 
+## Task 4A — Simulator Deployed Ingestion 404 Resolution & Analysis Latency Investigation
+
+**Status: COMPLETE & VERIFIED LIVE in working tree (2026-10-11).**
+
+### Summary of Events
+1. **Simulator 404 Root Cause:**
+   - Command `python main.py --scenario degraded --cycles 5 --backend-url https://plantnexus-api.onrender.com` sent requests to root `POST /`.
+   - Express server mounts ingestion strictly at `POST /api/telemetry` with no handler for `POST /`, returning 404.
+2. **Minimal Fix:**
+   - Added standard library [`normalize_backend_url`](file:///f:/PlantNexus/simulator/main.py#L16-L21) in [`simulator/main.py`](file:///f:/PlantNexus/simulator/main.py) to automatically append `/api/telemetry` when only the base server URL is provided, while preserving full endpoints intact.
+3. **Frontend Analysis Investigation:**
+   - Determined that the pending analysis request is a separate issue from the simulator's 404 path mismatch.
+   - Frontend `API_BASE` correctly routes to `/api/analyze`.
+   - Latency is caused by the backend's synchronous multi-turn Strands Agent reasoning loop with Gemini 3.8 Flash, which runs without a timeout and can take 35s to ~235s before returning HTTP 200.
+4. **Live Verification:**
+   - Ran `python main.py --scenario degraded --cycles 2 --backend-url https://plantnexus-api.onrender.com`. Both cycles were ingested with HTTP 201 by the deployed Render service.
+   - Ran full backend test suite (`npm test`): 126 pass, 0 fail across 24 suites.
+
+### Files changed
+- [`simulator/main.py`](file:///f:/PlantNexus/simulator/main.py) — added stdlib URL normalizer.
+- [`docs/PROJECT_STATUS.md`](file:///f:/PlantNexus/docs/PROJECT_STATUS.md) — updated with Task 4A evidence and status.
+
+### Blockers
+None.
+
+---
+
+## Task 4B — Fix Overview Machine Condition & Data Quality Separation
+
+**Status: COMPLETE & VERIFIED in working tree (2026-10-11).**
+
+### Root Cause
+1. Semantic conflation in `OverviewDashboard.tsx`: Telemetry data quality status (`quality.status === 'ok'`) was being interpreted as machine operational health, causing the dashboard to show a green "Healthy" badge even when telemetry metrics (e.g. energy 63.84 kW, waste 1.50 kg) were degraded or critical.
+2. The `GET /api/telemetry/analytics` endpoint only returned aggregate statistics (`computeAnalytics`) without running deterministic anomaly detection (`detectAnomalies`).
+3. If data was insufficient to establish baselines (< 5 historical readings), the machine condition could not be calculated, but the previous UI had no way to distinguish this from healthy operation.
+
+### Solution
+1. **Backend (`backend/src/server.js`):**
+   - Added `buildAnalyticsResponse(records)` helper that evaluates both `computeAnalytics(records)` and deterministic `detectAnomalies(records)`.
+   - Included `condition` (`HEALTHY`, `DEGRADED`, `CRITICAL`, or `null` when data is insufficient) in `GET /api/telemetry/analytics` response payload.
+   - Preserved detector requirements: baseline history minimum of 5 readings, newest-first record ordering, arithmetic mean baseline. When baseline depth is insufficient (`detection.quality.status === 'insufficient_data'`), `condition` is set to `null` rather than falsely reported as `HEALTHY`.
+2. **Frontend Types (`frontend/src/api/types.ts`):**
+   - Added `condition?: AnomalyCondition | null` to `AnalyticsResponse`.
+3. **Frontend Component (`frontend/src/components/OverviewDashboard.tsx`):**
+   - Derived operational health status from `data.condition` (`HEALTHY` -> `ok`, `DEGRADED` -> `degraded`, `CRITICAL` -> `critical`, otherwise `unknown`).
+   - Separated operational condition badge from data quality pill (`Data: Valid` / `Data: Degraded`).
+   - Displayed `Unavailable` (neutral gray badge) when condition cannot be calculated (e.g. insufficient data); never labels machine healthy merely because data packet numbers are valid.
+   - Displayed quality notices if `quality.warnings` are present.
+4. **Frontend Styles (`frontend/src/App.css`):**
+   - Added styles for `.status-badge-group`, `.data-quality-pill`, and `.data-quality-pill.degraded`.
+5. **Tests (`backend/src/server.test.js`):**
+   - Added test suite for `buildAnalyticsResponse` covering healthy telemetry, valid-but-degraded telemetry, valid-but-critical telemetry, insufficient data (empty array and fewer than baseline threshold), and full `AnalyticsResponse` API response compatibility.
+   - Updated endpoint tests to verify `GET /api/telemetry/analytics` returns `condition` (`null` for `limit=1` due to insufficient baseline, and valid condition for larger windows).
+
+### Tests Run
+- Backend tests (`node --test src/analytics.test.js src/detector.test.js src/explain.test.js src/recovery.test.js src/server.test.js`): **134 pass / 0 fail** across 24 suites.
+- Frontend build (`npm run build` in `frontend/`): **Succeeded cleanly with 0 TypeScript/build errors**.
+
+### Files Changed
+- `backend/src/server.js`
+- `backend/src/server.test.js`
+- `frontend/src/api/types.ts`
+- `frontend/src/App.css`
+- `frontend/src/components/OverviewDashboard.tsx`
+- `docs/PROJECT_STATUS.md`
+
+### Blockers
+None.
+
+
+---
+
+## Task 5A — Submission-Critical Dashboard Integration (Overview Condition, Analysis & Recovery)
+
+**Status: COMPLETE & VERIFIED in working tree (2026-10-11).**
+
+### What was done
+1. **Overview Machine Condition:**
+   - Operational health condition badge is strictly derived from deterministic condition (`data.condition`) returned by backend.
+   - Distinct from telemetry packet quality (`Data: Valid` / `Data: Degraded`).
+   - If condition cannot be determined (e.g., fewer than 5 baseline readings), displays `Unavailable` (neutral badge). Valid data arrival alone never implies healthy equipment.
+2. **Latest Analysis Summary on Overview:**
+   - Surfaced latest analysis result directly on Overview.
+   - Evaluated dual-path analysis: surfaces full AI analysis if run (`useAnalysis`), falling back cleanly to automatic deterministic baseline detection (`GET /api/telemetry/analytics`).
+   - Displays condition badge, primary evidence (top adverse metric with observed, baseline, and relative deviation %), recommended operator action, and analysis timestamp.
+   - Shows clear idle / not-yet-run state with "Run Analysis" CTA when telemetry is insufficient.
+   - Included direct deep link ("Full Details →") switching to Analysis & Evidence tab.
+3. **Recovery Verification Summary on Overview:**
+   - Surfaced recovery verification directly on Overview.
+   - Distinguishes `VERIFIED` (green), `NOT RECOVERED` (red/amber), `RECOVERING` (blue), and `NOT RUN` (neutral).
+   - Displays evaluation timestamp and healthy-reading streak (`consecutiveHealthy` / `requiredConsecutiveHealthy`) with visual progress bar.
+   - Displays explicit integrity check: *"Recovery requires verified consecutive healthy readings. Active telemetry arrival does not imply equipment recovery."*
+   - Included direct link ("Full Breakdown →") switching to Recovery Verification tab.
+4. **Background Behaviour & Duplicate Prevention:**
+   - Deterministic baseline analysis runs automatically on initial load and on every telemetry refresh (30s) via `GET /api/telemetry/analytics` (computed in <1ms on backend without invoking Gemini or external AI).
+   - Gemini Strands Agent is **never** invoked on polling ticks; AI narrative generation is reserved for on-demand analysis triggers (`analysis.execute()`).
+   - Loading states are clearly visible with spinners while never blocking Overview metrics rendering.
+   - Duplicate concurrent requests are guarded across all hooks via `isFetchingRef` / `isRequestInFlight` and `AbortController` cancellation.
+   - Recovery verification is strictly manual/on-demand to prevent invalid repeated verification in the background.
+5. **Freshness & Timestamp Separation:**
+   - Implemented a 3-way freshness strip in the Overview header:
+     - `Last Telemetry`: Live ingest timestamp (`timeRange.latest`).
+     - `Last Analysis`: Exact evaluation timestamp (`analysisTimestamp`) labeled as Session Ephemeral or Deterministic Auto, or `Not Run`.
+     - `Last Recovery Check`: Exact evaluation timestamp (`recoveryTimestamp`) labeled as Session Ephemeral, or `Not Run`.
+   - Never reuses telemetry timestamp for analysis or recovery checks.
+
+### Tests Run
+- Backend tests (`node --test src/analytics.test.js src/detector.test.js src/explain.test.js src/recovery.test.js`): **116 pass / 0 fail** across 24 suites.
+- Backend server integration tests (`node --test src/server.test.js`): **18 pass / 0 fail** across all suites.
+- Frontend production build (`npm run build` in `frontend/`): **Exit code 0, 0 TypeScript/build errors**.
+- Frontend lint (`npx eslint` on modified files): **0 errors, 0 warnings**.
+
+### Files Changed
+- [`backend/src/server.js`](file:///F:/PlantNexus/backend/src/server.js)
+- [`backend/src/server.test.js`](file:///F:/PlantNexus/backend/src/server.test.js)
+- [`frontend/src/api/types.ts`](file:///F:/PlantNexus/frontend/src/api/types.ts)
+- [`frontend/src/hooks/useAnalysis.ts`](file:///F:/PlantNexus/frontend/src/hooks/useAnalysis.ts)
+- [`frontend/src/hooks/useRecoveryVerification.ts`](file:///F:/PlantNexus/frontend/src/hooks/useRecoveryVerification.ts)
+- [`frontend/src/components/OverviewDashboard.tsx`](file:///F:/PlantNexus/frontend/src/components/OverviewDashboard.tsx)
+- [`frontend/src/components/AnalysisDashboard.tsx`](file:///F:/PlantNexus/frontend/src/components/AnalysisDashboard.tsx)
+- [`frontend/src/components/RecoveryDashboard.tsx`](file:///F:/PlantNexus/frontend/src/components/RecoveryDashboard.tsx)
+- [`frontend/src/App.tsx`](file:///F:/PlantNexus/frontend/src/App.tsx)
+- [`frontend/src/App.css`](file:///F:/PlantNexus/frontend/src/App.css)
+- [`docs/PROJECT_STATUS.md`](file:///F:/PlantNexus/docs/PROJECT_STATUS.md)
+
+### Blockers
+None.
+
+---
+
 ## Current milestone and next task
 
-**Current:** Milestones 1–5, 7, 8, 9, and Tasks 2A–2C, 3B–3E are COMPLETE in working tree.
+**Current:** Milestones 1–5, 7, 8, 9, Tasks 2A–2C, 3B–3E, 4A, 4B, and 5A are COMPLETE in working tree.
 
 **Next task:**
-- User review and git commit / push approval, or proceed to frontend integration / Milestone 6 (AWS).
+- User review and git commit / push approval, or final packaging for hackathon submission.
+
 
 

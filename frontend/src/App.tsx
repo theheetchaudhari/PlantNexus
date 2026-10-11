@@ -11,8 +11,13 @@ import { LandingPage } from './components/LandingPage/LandingPage';
 import { useRouter } from './router';
 import './App.css';
 
+import { useAnalysis } from './hooks/useAnalysis';
+import { useRecoveryVerification } from './hooks/useRecoveryVerification';
+
 function App() {
   const { path, tab, navigate, setDashboardTab } = useRouter();
+  const analysis = useAnalysis('M-017');
+  const recovery = useRecoveryVerification('M-017');
 
   const getTabLabel = (currentTab: TabId) => {
     switch (currentTab) {
@@ -44,13 +49,18 @@ function App() {
       
       <main className="main-content">
         {tab === 'overview' ? (
-          <OverviewDashboard machineId="M-017" />
+          <OverviewDashboard
+            machineId="M-017"
+            analysisState={analysis}
+            recoveryState={recovery}
+            onNavigateTab={setDashboardTab}
+          />
         ) : tab === 'telemetry' ? (
           <TelemetryTrends machineId="M-017" />
         ) : tab === 'analysis' ? (
-          <AnalysisDashboard machineId="M-017" />
+          <AnalysisDashboard machineId="M-017" analysisState={analysis} />
         ) : tab === 'recovery' ? (
-          <RecoveryDashboard machineId="M-017" />
+          <RecoveryDashboard machineId="M-017" recoveryState={recovery} />
         ) : (
           <div className="tab-panel-placeholder" role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
             <h2>{getTabLabel(tab)} Content</h2>

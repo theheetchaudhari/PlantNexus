@@ -2,12 +2,13 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { verifyRecovery } from '../api/client';
 import type { RecoveryVerificationResult } from '../api/types';
 
-interface UseRecoveryVerificationResult {
+export interface UseRecoveryVerificationResult {
   data: RecoveryVerificationResult | null;
   loading: boolean;
   error: Error | null;
   execute: (limit?: number, minConsecutive?: number) => Promise<void>;
   reset: () => void;
+  lastEvaluatedAt: string | null;
 }
 
 export function useRecoveryVerification(
@@ -18,6 +19,7 @@ export function useRecoveryVerification(
   const [data, setData] = useState<RecoveryVerificationResult | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
+  const [lastEvaluatedAt, setLastEvaluatedAt] = useState<string | null>(null);
 
   const isRequestInFlight = useRef<boolean>(false);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -46,6 +48,7 @@ export function useRecoveryVerification(
           controller.signal
         );
         setData(result);
+        setLastEvaluatedAt(result.timestamp || new Date().toISOString());
         setError(null);
       } catch (err: unknown) {
         if (err instanceof DOMException && err.name === 'AbortError') {
@@ -65,6 +68,7 @@ export function useRecoveryVerification(
       abortControllerRef.current.abort();
     }
     setData(null);
+    setLastEvaluatedAt(null);
     setError(null);
     setLoading(false);
     isRequestInFlight.current = false;
@@ -84,5 +88,6 @@ export function useRecoveryVerification(
     error,
     execute,
     reset,
+    lastEvaluatedAt,
   };
 }
