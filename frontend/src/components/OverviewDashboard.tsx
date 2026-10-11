@@ -392,7 +392,7 @@ export function OverviewDashboard({
                         {primaryEvidence.baseline.toFixed(2)} {primaryEvidence.unit}
                       </strong>
                     </div>
-                    {primaryEvidence.recommendation && (
+                    {primaryEvidence.severity !== 'none' && primaryEvidence.recommendation && (
                       <p className="text-xs text-secondary" style={{ margin: 0, fontStyle: 'italic' }}>
                         {primaryEvidence.recommendation}
                       </p>

@@ -550,12 +550,48 @@ None.
 
 ---
 
+## Task 5B — Submission-Critical Dashboard Consistency Review & Recommendation Defect Fix
+
+**Status: COMPLETE & VERIFIED in working tree (2026-10-11).**
+
+### Logical Consistency Assessment
+1. **Overview Condition (HEALTHY) vs Energy Deviation (+14.8%):**
+   - In [`detector.js`](file:///F:/PlantNexus/backend/src/detector.js), the soft threshold for `energy_kw` is `15%`. An adverse deviation of `+14.8%` is strictly below `softPct` (`14.8% < 15.0%`), which maps to `severity: "none"`.
+   - When all scored metrics evaluate to `severity: "none"`, `deriveCondition()` deterministically returns `"HEALTHY"`.
+   - Overview condition and Latest Anomaly Analysis condition are 100% logically consistent under the detector rules.
+2. **Recovery Verification (NOT RECOVERED) vs Anomaly Analysis (HEALTHY):**
+   - Logically consistent and mathematically sound due to distinct baseline semantics:
+     - **Detector:** Uses a relative rolling baseline (`records.slice(1)` mean) to measure short-term drift against recent operating history.
+     - **Recovery:** Uses an authoritative healthy reference baseline (`KNOWN_MACHINE_BASELINES["M-017"]`: 45.0 kW) and strictly enforces `minConsecutiveHealthy` (default 3) consecutive healthy readings before declaring recovery.
+     - A machine hovering around ~51.6 kW is within 15% of a contaminated recent mean, but exceeds the true 45.0 kW specification baseline and has 0 consecutive healthy readings. Hence `NOT_RECOVERED` is the correct, intended outcome.
+3. **Gemini API HTTP 429 Quota Exhaustion:**
+   - In [`explain.js`](file:///F:/PlantNexus/backend/src/explain.js), API errors (such as HTTP 429) are gracefully caught and handled by falling back to `buildFallbackExplanation`.
+   - Returns `source: "fallback"` with deterministic grounded narrative citing exact numbers and preserves `error` detail without breaking the UI.
+
+### Confirmed Defect Identified and Fixed
+- **Defect:** In [`OverviewDashboard.tsx`](file:///F:/PlantNexus/frontend/src/components/OverviewDashboard.tsx), the Primary Evidence block unconditionally displayed `primaryEvidence.recommendation` (e.g. *"Inspect energy draw path: motors, heaters, and idle-load contributors."*) even when the metric's severity was `"none"`. This produced a misleading contradiction on healthy machines where the evidence box recommended equipment inspection while the overall action box recommended *"Continue monitoring; no adverse deviations vs evidence baseline."*
+- **Fix:** Guarded the recommendation display in [`OverviewDashboard.tsx`](file:///F:/PlantNexus/frontend/src/components/OverviewDashboard.tsx) with `{primaryEvidence.severity !== 'none' && primaryEvidence.recommendation && (...)}`. Fault inspection actions are now only displayed when the metric has breached an anomaly threshold.
+
+### Tests Run
+- Backend test suite (`npm test` in `backend/`): **134 pass / 0 fail** across 24 suites.
+- Frontend build (`npm run build` in `frontend/`): **Exit code 0, 0 TypeScript/build errors**.
+
+### Files Changed
+- [`frontend/src/components/OverviewDashboard.tsx`](file:///F:/PlantNexus/frontend/src/components/OverviewDashboard.tsx)
+- [`docs/PROJECT_STATUS.md`](file:///F:/PlantNexus/docs/PROJECT_STATUS.md)
+
+### Blockers
+None.
+
+---
+
 ## Current milestone and next task
 
-**Current:** Milestones 1–5, 7, 8, 9, Tasks 2A–2C, 3B–3E, 4A, 4B, and 5A are COMPLETE in working tree.
+**Current:** Milestones 1–5, 7, 8, 9, Tasks 2A–2C, 3B–3E, 4A, 4B, 5A, and 5B are COMPLETE in working tree.
 
 **Next task:**
 - User review and git commit / push approval, or final packaging for hackathon submission.
+
 
 
 
